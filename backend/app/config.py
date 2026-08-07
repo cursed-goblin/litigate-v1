@@ -15,6 +15,11 @@ DEFAULT_GROQ_FALLBACKS = ",".join(
     )
 )
 
+# Resend allows this sender without a verified domain, but it will only
+# deliver to the address that owns the Resend account. Point ALERT_FROM at a
+# verified domain before sending to anyone else.
+DEFAULT_ALERT_FROM = "Litigate <onboarding@resend.dev>"
+
 
 def _split(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
@@ -34,10 +39,19 @@ class Settings:
     cache_dir: str = os.getenv("CACHE_DIR", "/tmp/litigate-cache")
     use_cache: bool = os.getenv("USE_CACHE", "true").lower() == "true"
 
+    resend_api_key: str = os.getenv("RESEND_API_KEY", "")
+    alert_from: str = os.getenv("ALERT_FROM", DEFAULT_ALERT_FROM)
+    auto_alert: bool = os.getenv("AUTO_ALERT", "true").lower() == "true"
+
     groq_fallbacks: list[str] = field(
         default_factory=lambda: _split(
             os.getenv("GROQ_MODEL_FALLBACKS", DEFAULT_GROQ_FALLBACKS)
         )
+    )
+
+    # Owners who receive an automatic alert when a contract lands as high risk.
+    alert_to: list[str] = field(
+        default_factory=lambda: _split(os.getenv("ALERT_TO", ""))
     )
 
     cors_origins: list[str] = field(
