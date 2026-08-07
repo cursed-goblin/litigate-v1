@@ -1,40 +1,48 @@
 import type { Config } from "tailwindcss"
 
+// Every colour resolves through a CSS variable so the palette can be swapped
+// at the root element. Components never need a dark: variant.
 const config: Config = {
+  darkMode: "class",
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        canvas: "#F5F6F8",
-        surface: "#FFFFFF",
-        line: "#E6E8EC",
+        canvas: "var(--canvas)",
+        surface: "var(--surface)",
+        line: "var(--line)",
+        // Solid buttons keep their own pair. Reusing ink would invert them
+        // in dark mode and leave white text on a pale background.
+        strong: "var(--strong)",
+        onstrong: "var(--on-strong)",
+        onaccent: "var(--on-accent)",
         ink: {
-          DEFAULT: "#101828",
-          2: "#344054",
-          3: "#667085",
-          4: "#98A2B3",
+          DEFAULT: "var(--ink)",
+          2: "var(--ink-2)",
+          3: "var(--ink-3)",
+          4: "var(--ink-4)",
         },
         accent: {
-          DEFAULT: "#12A67A",
-          soft: "#E6F6F0",
+          DEFAULT: "var(--accent)",
+          soft: "var(--accent-soft)",
         },
         risk: {
-          high: "#D92D20",
-          "high-soft": "#FEE4E2",
-          medium: "#DC6803",
-          "medium-soft": "#FEF0C7",
-          low: "#039855",
-          "low-soft": "#D1FADF",
+          high: "var(--risk-high)",
+          "high-soft": "var(--risk-high-soft)",
+          medium: "var(--risk-medium)",
+          "medium-soft": "var(--risk-medium-soft)",
+          low: "var(--risk-low)",
+          "low-soft": "var(--risk-low-soft)",
         },
         folder: {
-          amber: "#F79009",
-          "amber-soft": "#FEF0C7",
-          blue: "#2E90FA",
-          "blue-soft": "#D1E9FF",
-          green: "#12B76A",
-          "green-soft": "#D1FADF",
-          violet: "#7A5AF8",
-          "violet-soft": "#EBE9FE",
+          amber: "var(--folder-amber)",
+          "amber-soft": "var(--folder-amber-soft)",
+          blue: "var(--folder-blue)",
+          "blue-soft": "var(--folder-blue-soft)",
+          green: "var(--folder-green)",
+          "green-soft": "var(--folder-green-soft)",
+          violet: "var(--folder-violet)",
+          "violet-soft": "var(--folder-violet-soft)",
         },
       },
       fontFamily: {
@@ -50,8 +58,8 @@ const config: Config = {
         mono: ["'SF Mono'", "Menlo", "Consolas", "'Courier New'", "monospace"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)",
-        pop: "0 4px 16px rgba(16, 24, 40, 0.08)",
+        card: "var(--shadow-card)",
+        pop: "var(--shadow-pop)",
       },
     },
   },

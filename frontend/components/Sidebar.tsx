@@ -12,6 +12,7 @@ import {
   ScaleIcon,
   SearchIcon,
 } from "./Icons"
+import ThemeToggle from "./ThemeToggle"
 
 export type View =
   | "dashboard"
@@ -64,7 +65,7 @@ export default function Sidebar({
         className={
           "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] transition-colors " +
           (active
-            ? "bg-accent font-medium text-white"
+            ? "bg-accent font-medium text-onaccent"
             : "text-ink-2 hover:bg-canvas")
         }
       >
@@ -77,7 +78,7 @@ export default function Sidebar({
   return (
     <aside className="flex h-full w-[232px] shrink-0 flex-col border-r border-line bg-surface">
       <div className="flex items-center gap-2 px-4 py-4">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-ink text-[13px] font-semibold text-white">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-strong text-[13px] font-semibold text-onstrong">
           L
         </span>
         <span className="text-[15px] font-semibold tracking-tight">Litigate</span>
@@ -127,8 +128,10 @@ export default function Sidebar({
           ) : null}
         </div>
 
+        <ThemeToggle />
+
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-canvas px-3 py-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-onaccent">
             A
           </span>
           <span className="min-w-0">

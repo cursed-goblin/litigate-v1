@@ -4,6 +4,87 @@
 
 :root {
   color-scheme: light;
+
+  --canvas: #f5f6f8;
+  --surface: #ffffff;
+  --line: #e6e8ec;
+
+  --strong: #101828;
+  --on-strong: #ffffff;
+  --on-accent: #ffffff;
+
+  --ink: #101828;
+  --ink-2: #344054;
+  --ink-3: #667085;
+  --ink-4: #98a2b3;
+
+  --accent: #12a67a;
+  --accent-soft: #e6f6f0;
+
+  --risk-high: #d92d20;
+  --risk-high-soft: #fee4e2;
+  --risk-medium: #dc6803;
+  --risk-medium-soft: #fef0c7;
+  --risk-low: #039855;
+  --risk-low-soft: #d1fadf;
+
+  --folder-amber: #f79009;
+  --folder-amber-soft: #fef0c7;
+  --folder-blue: #2e90fa;
+  --folder-blue-soft: #d1e9ff;
+  --folder-green: #12b76a;
+  --folder-green-soft: #d1fadf;
+  --folder-violet: #7a5af8;
+  --folder-violet-soft: #ebe9fe;
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04),
+    0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-pop: 0 4px 16px rgba(16, 24, 40, 0.08);
+
+  --scroll-thumb: #d7dae0;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --canvas: #0e1116;
+  --surface: #151a21;
+  --line: #252c36;
+
+  --strong: #e8ecf2;
+  --on-strong: #101828;
+  --on-accent: #05231a;
+
+  --ink: #e8ecf2;
+  --ink-2: #c2cad6;
+  --ink-3: #8b95a5;
+  --ink-4: #667a8f;
+
+  --accent: #2dd4a7;
+  --accent-soft: #10312a;
+
+  /* Saturated reds vibrate on a dark ground, so the severity hues are
+     lightened and their tints pulled down to a low-luminance wash. */
+  --risk-high: #f97066;
+  --risk-high-soft: #3b1614;
+  --risk-medium: #fdb022;
+  --risk-medium-soft: #3a2610;
+  --risk-low: #47cd89;
+  --risk-low-soft: #10291d;
+
+  --folder-amber: #fdb022;
+  --folder-amber-soft: #3a2610;
+  --folder-blue: #53b1fd;
+  --folder-blue-soft: #10263c;
+  --folder-green: #47cd89;
+  --folder-green-soft: #10291d;
+  --folder-violet: #a48afb;
+  --folder-violet-soft: #241c46;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-pop: 0 4px 16px rgba(0, 0, 0, 0.45);
+
+  --scroll-thumb: #2f3743;
 }
 
 html,
@@ -12,8 +93,8 @@ body {
 }
 
 body {
-  background-color: #f5f6f8;
-  color: #101828;
+  background-color: var(--canvas);
+  color: var(--ink);
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
     Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -25,13 +106,8 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d7dae0;
+  background: var(--scroll-thumb);
   border-radius: 999px;
   border: 3px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #b9bec7;
   background-clip: content-box;
 }
