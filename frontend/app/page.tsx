@@ -17,18 +17,34 @@ import { explainFindings, getHealth, uploadContract } from "@/lib/api"
 import type { Explanation, Health, ParsedContract } from "@/lib/api"
 import { authConfigured, supabase } from "@/lib/supabase"
 import type { DocumentRecord } from "@/lib/session"
+import {
+  deleteDocument,
+  listDocuments,
+  loadDocument,
+  saveBriefing,
+  saveDocument,
+  storeConfigured,
+} from "@/lib/store"
 import { RANK } from "@/lib/format"
 
 const ACCEPT = ".pdf,.docx,.txt,.md"
+
+// An analysis that could not be saved is still usable for the rest of the
+// session under this id prefix. Losing an upload because a table is missing
+// would be a worse failure than losing its history.
+const LOCAL_PREFIX = "local-"
 
 export default function Page() {
   const [view, setView] = useState<View>("dashboard")
   const [health, setHealth] = useState<Health | null>(null)
   const [contract, setContract] = useState<ParsedContract | null>(null)
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [openingId, setOpeningId] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [storeError, setStoreError] = useState<string | null>(null)
   const [briefing, setBriefing] = useState<Record<string, Explanation>>({})
   const [briefingBusy, setBriefingBusy] = useState(false)
   const [briefingError, setBriefingError] = useState<string | null>(null)
@@ -61,6 +77,7 @@ export default function Page() {
 
   const signedIn = !authConfigured || Boolean(session)
   const email = session?.user?.email ?? ""
+  const userId = session?.user?.id ?? ""
 
   useEffect(() => {
     if (!signedIn) {
@@ -71,61 +88,186 @@ export default function Page() {
       .catch(() => setHealth(null))
   }, [signedIn])
 
-  const ingest = useCallback(async (file: File) => {
-    setBusy(true)
-    setUploadError(null)
-    setBriefing({})
-    setBriefingError(null)
-    setSelected(null)
+  // The document history belongs to the account, so it is reloaded whenever
+  // the signed in user changes rather than only on first mount.
+  useEffect(() => {
+    if (!signedIn || !storeConfigured) {
+      return
+    }
 
-    let parsed: ParsedContract | null = null
+    let cancelled = false
 
-    try {
-      parsed = await uploadContract(file)
-      setContract(parsed)
+    listDocuments()
+      .then((rows) => {
+        if (!cancelled) {
+          setDocuments(rows)
+        }
+      })
+      .catch((cause: unknown) => {
+        if (!cancelled) {
+          setStoreError(
+            cause instanceof Error
+              ? cause.message
+              : "your saved documents could not be loaded",
+          )
+        }
+      })
 
-      const summary = parsed.summary
-      setDocuments((prev) => [
-        {
-          id: "d" + Date.now(),
-          name: parsed?.filename || file.name,
-          bytes: parsed?.bytes ?? file.size,
+    return () => {
+      cancelled = true
+    }
+  }, [signedIn, userId])
+
+  const ingest = useCallback(
+    async (file: File) => {
+      setBusy(true)
+      setUploadError(null)
+      setStoreError(null)
+      setBriefing({})
+      setBriefingError(null)
+      setSelected(null)
+
+      let parsed: ParsedContract | null = null
+      let savedId: string | null = null
+
+      try {
+        parsed = await uploadContract(file)
+        setContract(parsed)
+
+        const summary = parsed.summary
+        let record: DocumentRecord = {
+          id: LOCAL_PREFIX + Date.now(),
+          name: parsed.filename || file.name,
+          bytes: parsed.bytes ?? file.size,
           uploadedAt: new Date().toISOString(),
-          clauseCount: parsed?.clauseCount ?? 0,
+          clauseCount: parsed.clauseCount ?? 0,
           findingCount: summary?.total ?? 0,
           high: summary?.high ?? 0,
           riskScore: summary?.riskScore ?? 0,
           riskBand: summary?.riskBand ?? "low",
-        },
-        ...prev,
-      ])
+        }
 
-      setView("review")
-    } catch (cause) {
-      setUploadError(cause instanceof Error ? cause.message : "upload failed")
-    } finally {
-      setBusy(false)
-    }
+        if (storeConfigured) {
+          try {
+            const stored = await saveDocument(parsed, file.name)
+            if (stored) {
+              record = stored
+              savedId = stored.id
+            }
+          } catch (cause) {
+            setStoreError(
+              cause instanceof Error
+                ? "analysed, but not saved: " + cause.message
+                : "this document was analysed but could not be saved",
+            )
+          }
+        }
 
-    // Second pass. The findings are already on screen, so a model outage
-    // costs the plain-English layer and nothing else.
-    const list = parsed?.findings ?? []
-    if (!list.length) {
-      return
-    }
+        setDocuments((prev) => [
+          record,
+          ...prev.filter((item) => item.id !== record.id),
+        ])
+        setActiveId(record.id)
+        setView("review")
+      } catch (cause) {
+        setUploadError(cause instanceof Error ? cause.message : "upload failed")
+      } finally {
+        setBusy(false)
+      }
 
-    setBriefingBusy(true)
-    try {
-      const result = await explainFindings(list)
-      setBriefing(result.explanations)
-    } catch (cause) {
-      setBriefingError(
-        cause instanceof Error ? cause.message : "briefing failed",
-      )
-    } finally {
-      setBriefingBusy(false)
-    }
-  }, [])
+      // Second pass. The findings are already on screen, so a model outage
+      // costs the plain-English layer and nothing else.
+      const list = parsed?.findings ?? []
+      if (!list.length) {
+        return
+      }
+
+      setBriefingBusy(true)
+      try {
+        const result = await explainFindings(list)
+        setBriefing(result.explanations)
+        // Stored alongside the contract so reopening it later does not spend
+        // another round of model calls.
+        if (savedId) {
+          void saveBriefing(savedId, result.explanations).catch(() => {})
+        }
+      } catch (cause) {
+        setBriefingError(
+          cause instanceof Error ? cause.message : "briefing failed",
+        )
+      } finally {
+        setBriefingBusy(false)
+      }
+    },
+    [],
+  )
+
+  // Nothing is shown for a document until it is opened, at which point its
+  // full analysis is fetched and every view switches to it.
+  const openDocument = useCallback(
+    async (doc: DocumentRecord) => {
+      if (doc.id === activeId && contract) {
+        setView("review")
+        return
+      }
+
+      if (doc.id.startsWith(LOCAL_PREFIX)) {
+        setStoreError(
+          "This analysis was never saved, so it cannot be reopened. Upload the file again.",
+        )
+        return
+      }
+
+      setOpeningId(doc.id)
+      setStoreError(null)
+
+      try {
+        const stored = await loadDocument(doc.id)
+        if (!stored) {
+          throw new Error("this document is no longer available")
+        }
+        setContract(stored.contract)
+        setBriefing(stored.briefing)
+        setBriefingError(null)
+        setSelected(null)
+        setActiveId(doc.id)
+        setView("review")
+      } catch (cause) {
+        setStoreError(
+          cause instanceof Error ? cause.message : "this document could not be opened",
+        )
+      } finally {
+        setOpeningId(null)
+      }
+    },
+    [activeId, contract],
+  )
+
+  const removeDocument = useCallback(
+    async (doc: DocumentRecord) => {
+      setStoreError(null)
+      setDocuments((prev) => prev.filter((item) => item.id !== doc.id))
+
+      if (doc.id === activeId) {
+        setActiveId(null)
+        setContract(null)
+        setBriefing({})
+      }
+
+      if (doc.id.startsWith(LOCAL_PREFIX)) {
+        return
+      }
+
+      try {
+        await deleteDocument(doc.id)
+      } catch (cause) {
+        setStoreError(
+          cause instanceof Error ? cause.message : "this document could not be deleted",
+        )
+      }
+    },
+    [activeId],
+  )
 
   const pick = useCallback(() => picker.current?.click(), [])
 
@@ -147,7 +289,9 @@ export default function Page() {
     void supabase.auth.signOut()
     setContract(null)
     setDocuments([])
+    setActiveId(null)
     setBriefing({})
+    setStoreError(null)
     setView("dashboard")
   }, [])
 
@@ -213,11 +357,15 @@ export default function Page() {
           <Documents
             documents={documents}
             contract={contract}
+            activeId={activeId}
+            openingId={openingId}
             busy={busy}
             uploadError={uploadError}
+            storeError={storeError}
             onUpload={pick}
             onDrop={onDrop}
-            onOpen={() => setView("review")}
+            onOpen={openDocument}
+            onDelete={removeDocument}
           />
         ) : null}
 
