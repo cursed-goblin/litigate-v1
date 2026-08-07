@@ -1,3 +1,5 @@
+import { accessToken } from "./supabase"
+
 // The API is a public endpoint rather than a secret, so the deployed backend
 // is a safe default. An env var still wins when one is supplied, which keeps
 // local development pointing at localhost.
@@ -28,6 +30,7 @@ export type Health = {
   playbook?: string
   features?: string[]
   mail?: MailStatus
+  auth?: { configured: boolean }
 }
 
 export type Clause = {
@@ -125,8 +128,19 @@ function endpoint(path: string) {
   return API_BASE + (path.startsWith("/") ? path : "/" + path)
 }
 
+// The backend resolves the alert recipient from this token rather than from
+// anything in the request body, so it must ride along with every call that
+// can result in mail being sent.
+async function authHeaders(): Promise<Record<string, string>> {
+  const token = await accessToken()
+  return token ? { Authorization: "Bearer " + token } : {}
+}
+
 async function request<T>(path: string): Promise<T> {
-  const response = await fetch(endpoint(path), { cache: "no-store" })
+  const response = await fetch(endpoint(path), {
+    cache: "no-store",
+    headers: await authHeaders(),
+  })
   if (!response.ok) {
     throw new Error(path + " responded " + response.status)
   }
@@ -148,7 +162,10 @@ async function detailOf(response: Response, fallback: string) {
 async function postJson<T>(path: string, body: unknown, label: string): Promise<T> {
   const response = await fetch(endpoint(path), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(await authHeaders()),
+    },
     body: JSON.stringify(body),
   })
 
@@ -175,6 +192,7 @@ export async function uploadContract(file: File): Promise<ParsedContract> {
 
   const response = await fetch(endpoint("/api/contracts/upload"), {
     method: "POST",
+    headers: await authHeaders(),
     body,
   })
 
@@ -217,8 +235,9 @@ export function askQuestion(
 }
 
 /**
- * Email the risk report for a contract. An empty recipient tells the backend
- * to use its own configured escalation contacts.
+ * Email the risk report for a contract. The recipient is taken from the
+ * signed in session on the server side, so the address sent here is only a
+ * hint used when authentication is switched off.
  */
 export function sendRiskAlert(
   to: string,

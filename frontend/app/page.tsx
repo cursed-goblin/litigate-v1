@@ -2,17 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { DragEvent } from "react"
+import type { Session } from "@supabase/supabase-js"
 
 import Analysis from "@/components/Analysis"
 import Assistant from "@/components/Assistant"
 import Dashboard from "@/components/Dashboard"
 import Documents from "@/components/Documents"
+import Login from "@/components/Login"
 import Playbook from "@/components/Playbook"
 import RiskRegister from "@/components/RiskRegister"
 import Sidebar from "@/components/Sidebar"
 import type { View } from "@/components/Sidebar"
 import { explainFindings, getHealth, uploadContract } from "@/lib/api"
 import type { Explanation, Health, ParsedContract } from "@/lib/api"
+import { authConfigured, supabase } from "@/lib/supabase"
 import type { DocumentRecord } from "@/lib/session"
 import { RANK } from "@/lib/format"
 
@@ -30,13 +33,43 @@ export default function Page() {
   const [briefingBusy, setBriefingBusy] = useState(false)
   const [briefingError, setBriefingError] = useState<string | null>(null)
 
+  const [session, setSession] = useState<Session | null>(null)
+  // Blocks the first paint until the stored session has been read, otherwise
+  // a returning user is shown the login screen for a moment before being
+  // dropped back into the app.
+  const [authReady, setAuthReady] = useState(!authConfigured)
+
   const picker = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (!supabase) {
+      return
+    }
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setSession(data.session))
+      .catch(() => setSession(null))
+      .finally(() => setAuthReady(true))
+
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next)
+    })
+
+    return () => data.subscription.unsubscribe()
+  }, [])
+
+  const signedIn = !authConfigured || Boolean(session)
+  const email = session?.user?.email ?? ""
+
+  useEffect(() => {
+    if (!signedIn) {
+      return
+    }
     getHealth()
       .then(setHealth)
       .catch(() => setHealth(null))
-  }, [])
+  }, [signedIn])
 
   const ingest = useCallback(async (file: File) => {
     setBusy(true)
@@ -107,6 +140,17 @@ export default function Page() {
     [ingest],
   )
 
+  const signOut = useCallback(() => {
+    if (!supabase) {
+      return
+    }
+    void supabase.auth.signOut()
+    setContract(null)
+    setDocuments([])
+    setBriefing({})
+    setView("dashboard")
+  }, [])
+
   const findings = useMemo(() => {
     const list = contract?.findings ?? []
     return [...list].sort(
@@ -118,6 +162,14 @@ export default function Page() {
     setSelected(clauseId)
     setView("review")
   }, [])
+
+  if (!authReady) {
+    return <div className="h-screen bg-canvas" />
+  }
+
+  if (!signedIn) {
+    return <Login />
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -140,6 +192,8 @@ export default function Page() {
         onSelect={setView}
         online={health?.status === "ok"}
         alerts={contract?.summary?.high ?? 0}
+        email={email}
+        onSignOut={authConfigured ? signOut : undefined}
       />
 
       <main className="min-w-0 flex-1 overflow-hidden">
@@ -149,6 +203,7 @@ export default function Page() {
             summary={contract?.summary}
             findings={findings}
             documents={documents}
+            email={email}
             onOpenRisk={() => setView("risk")}
             onUpload={pick}
           />

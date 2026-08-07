@@ -66,6 +66,7 @@ export default function Dashboard({
   summary,
   findings,
   documents,
+  email,
   onOpenRisk,
   onUpload,
 }: {
@@ -73,6 +74,7 @@ export default function Dashboard({
   summary?: Summary
   findings: Finding[]
   documents: DocumentRecord[]
+  email: string
   onOpenRisk: () => void
   onUpload: () => void
 }) {
@@ -246,7 +248,7 @@ export default function Dashboard({
         )}
       </div>
 
-      <EmailReport contract={contract} />
+      <EmailReport contract={contract} email={email} />
     </div>
   )
 }

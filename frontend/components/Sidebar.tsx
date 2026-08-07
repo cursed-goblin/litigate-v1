@@ -48,11 +48,15 @@ export default function Sidebar({
   onSelect,
   online,
   alerts,
+  email,
+  onSignOut,
 }: {
   view: View
   onSelect: (next: View) => void
   online: boolean
   alerts: number
+  email: string
+  onSignOut?: () => void
 }) {
   const renderItem = (item: Item) => {
     const Icon = item.icon
@@ -74,6 +78,9 @@ export default function Sidebar({
       </button>
     )
   }
+
+  const label = email || "Signed out"
+  const initial = email ? email.charAt(0).toUpperCase() : "L"
 
   return (
     <aside className="flex h-full w-[232px] shrink-0 flex-col border-r border-line bg-surface">
@@ -131,21 +138,35 @@ export default function Sidebar({
         <ThemeToggle />
 
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-canvas px-3 py-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-onaccent">
-            A
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-onaccent">
+            {initial}
           </span>
-          <span className="min-w-0">
-            <span className="block truncate text-[13px] font-medium">Abhinav T S</span>
-            <span className="block text-[11px] text-ink-4">Legal Operations</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-medium" title={label}>
+              {label}
+            </span>
+            <span className="block text-[11px] text-ink-4">
+              {email ? "Alerts sent here" : "Not signed in"}
+            </span>
           </span>
           <span
             title={online ? "API online" : "API offline"}
             className={
-              "ml-auto h-2 w-2 shrink-0 rounded-full " +
+              "h-2 w-2 shrink-0 rounded-full " +
               (online ? "bg-accent" : "bg-risk-high")
             }
           />
         </div>
+
+        {onSignOut ? (
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="mt-2 w-full rounded-lg px-3 py-2 text-left text-[12.5px] text-ink-3 transition-colors hover:bg-canvas hover:text-ink-2"
+          >
+            Sign out
+          </button>
+        ) : null}
       </div>
     </aside>
   )
