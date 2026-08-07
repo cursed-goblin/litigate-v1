@@ -22,7 +22,7 @@ from .llm import LLMError, complete_json
 from .mailer import MailError
 from .mailer import configured as mail_configured
 from .mailer import send_quietly, send_report
-from .rules import evaluate, load_playbook, playbook_name
+from .rules import evaluate, load_playbook, playbook_name, score_model
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
@@ -31,9 +31,9 @@ MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 # shape instead. Credentials are never sent, so this exposes nothing.
 CORS_ORIGIN_REGEX = r"https://([a-z0-9-]+\.)*(zenvx\.in|pages\.dev|workers\.dev)"
 
-FEATURES = ["upload", "rules", "explain", "chat", "email", "auth"]
+FEATURES = ["upload", "rules", "explain", "chat", "email", "auth", "scoring"]
 
-app = FastAPI(title="Litigate API", version="0.7.0")
+app = FastAPI(title="Litigate API", version="0.8.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -112,6 +112,7 @@ def health() -> dict:
             "recipients": len(settings.alert_to),
         },
         "auth": {"configured": auth_configured()},
+        "scoring": score_model(),
         "corsOrigins": settings.cors_origins,
         "corsOriginRegex": CORS_ORIGIN_REGEX,
     }
@@ -126,6 +127,7 @@ def playbook() -> dict:
         "owner": book.get("owner"),
         "ruleCount": len(book.get("rules", [])),
         "requiredClauseCount": len(book.get("requiredClauses", [])),
+        "scoring": score_model(),
         "rules": [
             {
                 "id": rule.get("id"),

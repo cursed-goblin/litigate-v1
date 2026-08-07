@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -13,6 +14,17 @@ PLAYBOOK_PATH = Path(__file__).with_name("playbook.json")
 
 MIN_RULE_WORDS = 25
 SEVERITY_WEIGHT = {"high": 18, "medium": 9, "low": 4}
+
+# The weighted severity total is unbounded, so clamping it at 100 made every
+# seriously bad contract report the same number. Below the high threshold the
+# score is the weighted total itself, which keeps the old behaviour for mild
+# documents. Above it, additional weight is compressed towards a ceiling just
+# short of 100, so a bad contract and a catastrophic one still rank against
+# each other and nothing ever reads as a perfect 100.
+BAND_HIGH = 60
+BAND_MEDIUM = 30
+SCORE_CEILING = 99
+COMPRESSION = 70.0
 
 _DAYS = re.compile(r"(\d{1,4})\s*\)?\s*(?:calendar |business |working )?days", re.IGNORECASE)
 _MONTHS = re.compile(r"(\d{1,3})\s*\)?\s*months", re.IGNORECASE)
@@ -70,6 +82,41 @@ def load_playbook() -> dict[str, Any]:
 def playbook_name() -> str:
     book = load_playbook()
     return str(book.get("name", "playbook")) + " v" + str(book.get("version", "1"))
+
+
+def score_from_weight(weighted: int) -> int:
+    """Turn an unbounded weighted severity total into a 0 to 99 score.
+
+    Linear up to the high threshold, then asymptotic. The curve is strictly
+    increasing, so two documents with different findings almost never share a
+    score, and the number can be explained in one sentence when asked.
+    """
+    if weighted <= 0:
+        return 0
+    if weighted <= BAND_HIGH:
+        return int(weighted)
+    headroom = SCORE_CEILING - BAND_HIGH
+    excess = float(weighted - BAND_HIGH)
+    return int(round(BAND_HIGH + headroom * (1.0 - math.exp(-excess / COMPRESSION))))
+
+
+def band_for(score: int) -> str:
+    if score >= BAND_HIGH:
+        return "high"
+    if score >= BAND_MEDIUM:
+        return "medium"
+    return "low"
+
+
+def score_model() -> dict[str, Any]:
+    """Describe the scoring method so it can be shown and defended."""
+    return {
+        "weights": dict(SEVERITY_WEIGHT),
+        "ceiling": SCORE_CEILING,
+        "highBand": BAND_HIGH,
+        "mediumBand": BAND_MEDIUM,
+        "curve": "linear to " + str(BAND_HIGH) + ", then asymptotic to " + str(SCORE_CEILING),
+    }
 
 
 def classify(clause: Clause) -> str:
@@ -253,8 +300,10 @@ def evaluate(
     high = sum(1 for item in findings if item.severity == "high")
     medium = sum(1 for item in findings if item.severity == "medium")
     low = sum(1 for item in findings if item.severity == "low")
-    score = min(100, sum(SEVERITY_WEIGHT.get(item.severity, 0) for item in findings))
-    band = "high" if score >= 60 else "medium" if score >= 30 else "low"
+
+    weighted = sum(SEVERITY_WEIGHT.get(item.severity, 0) for item in findings)
+    score = score_from_weight(weighted)
+    band = band_for(score)
 
     cap_clause = next(
         (c for c in clauses if types[c.id] == "limitation_of_liability" and _AMOUNT.search(c.text)),
@@ -269,6 +318,8 @@ def evaluate(
         "low": low,
         "riskScore": score,
         "riskBand": band,
+        "riskWeighted": weighted,
+        "riskCeiling": SCORE_CEILING,
         "grounded": sum(1 for item in findings if item.grounded),
         "clausesAnalysed": sum(1 for c in clauses if c.words >= MIN_RULE_WORDS),
         "contractValue": contract_value,
