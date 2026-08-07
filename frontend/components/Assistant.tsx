@@ -134,7 +134,7 @@ export default function Assistant({
             {messages.map((message) =>
               message.role === "user" ? (
                 <div key={message.id} className="flex justify-end">
-                  <p className="max-w-[80%] rounded-2xl rounded-br-sm bg-ink px-4 py-2.5 text-[13px] leading-6 text-white">
+                  <p className="max-w-[80%] rounded-2xl rounded-br-sm bg-strong px-4 py-2.5 text-[13px] leading-6 text-onstrong">
                     {message.text}
                   </p>
                 </div>
@@ -208,7 +208,7 @@ export default function Assistant({
           <button
             type="submit"
             disabled={!contract || busy || !draft.trim()}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-opacity disabled:opacity-30"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-strong text-onstrong transition-opacity disabled:opacity-30"
           >
             <SendIcon className="h-4 w-4" />
           </button>

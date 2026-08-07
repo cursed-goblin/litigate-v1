@@ -177,7 +177,7 @@ export default function Analysis({
             type="button"
             onClick={onUpload}
             disabled={busy}
-            className="mx-auto mt-5 flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-[13px] font-medium text-white disabled:opacity-50"
+            className="mx-auto mt-5 flex items-center gap-2 rounded-full bg-strong px-4 py-2.5 text-[13px] font-medium text-onstrong disabled:opacity-50"
           >
             <UploadIcon className="h-4 w-4" />
             Choose file
@@ -235,7 +235,7 @@ export default function Analysis({
               type="button"
               onClick={onUpload}
               disabled={busy}
-              className="rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white disabled:opacity-50"
+              className="rounded-full bg-strong px-4 py-2 text-[13px] font-medium text-onstrong disabled:opacity-50"
             >
               {busy ? "Analysing..." : "Replace"}
             </button>
