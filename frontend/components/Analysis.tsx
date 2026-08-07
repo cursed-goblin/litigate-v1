@@ -5,6 +5,7 @@ import type { DragEvent } from "react"
 import type { Clause, Explanation, Finding, ParsedContract } from "@/lib/api"
 import {
   DASH,
+  RANK,
   RISK_CHIP,
   RISK_EDGE,
   RISK_FILL,
@@ -59,8 +60,8 @@ function FindingCard({
       </div>
 
       <p className="mt-1 font-mono text-[11px] text-ink-4">
-        {finding.ruleId}
-        {finding.clauseNumber ? "  \u00b7  Clause " + finding.clauseNumber : ""}
+        {finding.ruleId +
+          (finding.clauseNumber ? "  \u00b7  Clause " + finding.clauseNumber : "")}
       </p>
 
       <p className="mt-2.5 text-[12px] leading-5 text-ink-2">{finding.observed}</p>
@@ -138,11 +139,13 @@ export default function Analysis({
   const activeFindings = active
     ? findings.filter((finding) => finding.clauseId === active.id)
     : findings
-  const worst = new Map<string, string>()
 
+  // A clause is coloured by its most serious finding, so keep the highest
+  // rank rather than trusting the order the findings arrived in.
+  const worst = new Map<string, string>()
   findings.forEach((finding) => {
     const current = worst.get(finding.clauseId)
-    if (!current || (RISK_CHIP[finding.severity] && current === "low")) {
+    if (!current || (RANK[finding.severity] ?? 0) > (RANK[current] ?? 0)) {
       worst.set(finding.clauseId, finding.severity)
     }
   })
@@ -197,7 +200,10 @@ export default function Analysis({
               {contract.filename}
             </h1>
             <p className="mt-0.5 text-[12px] text-ink-3">
-              {contract.clauseCount} clauses \u00b7 {summary?.rulesEvaluated ?? 0} rules
+              {contract.clauseCount +
+                " clauses \u00b7 " +
+                (summary?.rulesEvaluated ?? 0) +
+                " rules applied"}
             </p>
           </div>
 
@@ -310,7 +316,7 @@ export default function Analysis({
           {active ? (
             <div className="mb-4 rounded-xl border border-line bg-surface p-4 shadow-card">
               <p className="text-[11px] font-semibold tracking-[0.06em] text-ink-4">
-                CLAUSE {active.number}
+                {"CLAUSE " + active.number}
               </p>
               <p className="mt-1 text-[14px] font-semibold">{active.title}</p>
               <p className="mt-2.5 whitespace-pre-wrap text-[12.5px] leading-6 text-ink-2">

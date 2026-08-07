@@ -20,10 +20,12 @@ export const RISK_FILL: Record<string, string> = {
   low: "bg-risk-low",
 }
 
+// Left edge only. Tailwind emits border-l-{color} after border-{color}, so
+// this wins over the neutral border on that side and leaves the rest grey.
 export const RISK_EDGE: Record<string, string> = {
-  high: "border-risk-high",
-  medium: "border-risk-medium",
-  low: "border-risk-low",
+  high: "border-l-risk-high",
+  medium: "border-l-risk-medium",
+  low: "border-l-risk-low",
 }
 
 /** Indian grouping, e.g. 42000000 becomes INR 4,20,00,000. */
@@ -65,8 +67,7 @@ export function whenLabel(iso: string) {
     return DASH
   }
   const now = new Date()
-  const sameDay = when.toDateString() === now.toDateString()
-  if (sameDay) {
+  if (when.toDateString() === now.toDateString()) {
     return "Today, " + clockTime(iso)
   }
   return when.toLocaleDateString("en-IN", {

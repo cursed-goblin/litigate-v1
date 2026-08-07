@@ -55,7 +55,7 @@ export default function RiskRegister({
                 : "border-line bg-surface text-ink-2 hover:bg-canvas")
             }
           >
-            {value} ({countFor(value)})
+            {value + " (" + countFor(value) + ")"}
           </button>
         ))}
       </div>
@@ -97,7 +97,7 @@ export default function RiskRegister({
                   {finding.title}
                 </span>
                 <span className="mt-0.5 block font-mono text-[11px] text-ink-4">
-                  {finding.ruleId} \u00b7 {titleCase(finding.clauseType)}
+                  {finding.ruleId + " \u00b7 " + titleCase(finding.clauseType)}
                 </span>
                 {briefing[finding.id] ? (
                   <span className="mt-1.5 block text-[12px] leading-5 text-ink-3">
