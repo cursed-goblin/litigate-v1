@@ -2,16 +2,18 @@ from dataclasses import asdict
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from .clauses import split_clauses
 from .config import settings
+from .explain import explain
 from .extract import ExtractionError, extract_text
 from .llm import LLMError, complete_json
 from .rules import evaluate, load_playbook, playbook_name
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
-app = FastAPI(title="Litigate API", version="0.3.0")
+app = FastAPI(title="Litigate API", version="0.4.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,9 +24,18 @@ app.add_middleware(
 )
 
 
+class ExplainRequest(BaseModel):
+    findings: list[dict] = Field(default_factory=list)
+
+
 @app.get("/")
 def root() -> dict:
     return {"service": "litigate-api", "version": app.version}
+
+
+@app.head("/")
+def root_head() -> dict:
+    return {}
 
 
 @app.get("/api/health")
@@ -103,4 +114,26 @@ async def upload_contract(file: UploadFile = File(...)) -> dict:
         ],
         "findings": [asdict(finding) for finding in findings],
         "summary": summary,
+    }
+
+
+@app.post("/api/contracts/explain")
+async def explain_contract(payload: ExplainRequest) -> dict:
+    """Reword proven findings for a non-lawyer reader.
+
+    Kept separate from upload so that a model outage costs the narrative
+    layer only. The findings themselves never depend on this call.
+    """
+    if not payload.findings:
+        raise HTTPException(status_code=400, detail="no findings were supplied")
+
+    try:
+        explanations = await explain(payload.findings)
+    except LLMError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return {
+        "explanations": explanations,
+        "requested": len(payload.findings),
+        "returned": len(explanations),
     }
