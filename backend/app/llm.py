@@ -12,9 +12,7 @@ import httpx
 from .config import settings
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GEMINI_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-)
+GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 _TIMEOUT = httpx.Timeout(90.0, connect=10.0)
 
@@ -74,10 +72,11 @@ async def _call_gemini(system: str, user: str, model: str) -> str:
             "responseMimeType": "application/json",
         },
     }
+    url = GEMINI_BASE + "/" + model + ":generateContent"
 
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         response = await client.post(
-            GEMINI_URL.format(model=model),
+            url,
             json=payload,
             params={"key": settings.gemini_api_key},
         )
@@ -85,8 +84,14 @@ async def _call_gemini(system: str, user: str, model: str) -> str:
     return response.json()["candidates"][0]["content"]["parts"][0]["text"]
 
 
-def _providers(fast: bool) -> list[tuple[str, str, Callable[[str, str, str], Awaitable[str]]]]:
-    groq = ("groq", settings.groq_fast_model if fast else settings.groq_model, _call_groq)
+def _providers(
+    fast: bool,
+) -> list[tuple[str, str, Callable[[str, str, str], Awaitable[str]]]]:
+    groq = (
+        "groq",
+        settings.groq_fast_model if fast else settings.groq_model,
+        _call_groq,
+    )
     gemini = ("gemini", settings.gemini_model, _call_gemini)
 
     ordered = [groq, gemini] if settings.llm_provider == "groq" else [gemini, groq]
