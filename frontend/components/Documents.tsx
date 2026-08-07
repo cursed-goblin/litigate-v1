@@ -75,10 +75,16 @@ export default function Documents({
   busy,
   uploadError,
   storeError,
+  driveReady,
+  driveBusy,
+  driveStatus,
+  driveError,
   onUpload,
   onDrop,
   onOpen,
   onDelete,
+  onDriveImport,
+  onDriveConnect,
 }: {
   documents: DocumentRecord[]
   contract: ParsedContract | null
@@ -87,10 +93,16 @@ export default function Documents({
   busy: boolean
   uploadError: string | null
   storeError: string | null
+  driveReady: boolean
+  driveBusy: boolean
+  driveStatus: string | null
+  driveError: string | null
   onUpload: () => void
   onDrop: (event: DragEvent<HTMLElement>) => void
   onOpen: (doc: DocumentRecord) => void
   onDelete: (doc: DocumentRecord) => void
+  onDriveImport: () => void
+  onDriveConnect: () => void
 }) {
   const [query, setQuery] = useState("")
 
@@ -117,15 +129,28 @@ export default function Documents({
             Saved to your account. Select one to load its analysis.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onUpload}
-          disabled={busy}
-          className="flex items-center gap-2 rounded-full bg-strong px-4 py-2.5 text-[13px] font-medium text-onstrong transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          <UploadIcon className="h-4 w-4" />
-          {busy ? "Analysing..." : "Upload"}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {driveReady ? (
+            <button
+              type="button"
+              onClick={onDriveImport}
+              disabled={busy || driveBusy}
+              className="flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:bg-canvas disabled:opacity-50"
+            >
+              <FolderIcon className="h-4 w-4" />
+              {driveBusy ? "Importing..." : "Import from Drive"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={onUpload}
+            disabled={busy}
+            className="flex items-center gap-2 rounded-full bg-strong px-4 py-2.5 text-[13px] font-medium text-onstrong transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            <UploadIcon className="h-4 w-4" />
+            {busy ? "Analysing..." : "Upload"}
+          </button>
+        </div>
       </div>
 
       <div className="mt-5 flex items-center gap-3">
@@ -159,6 +184,25 @@ export default function Documents({
         <p className="mt-4 rounded-lg border border-line bg-surface px-4 py-2.5 text-[13px] text-ink-2">
           {storeError}
         </p>
+      ) : null}
+
+      {driveStatus ? (
+        <p className="mt-4 rounded-lg border border-line bg-surface px-4 py-2.5 text-[13px] text-ink-2">
+          {driveStatus}
+        </p>
+      ) : null}
+
+      {driveError ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface px-4 py-3">
+          <p className="text-[13px] text-ink-2">{driveError}</p>
+          <button
+            type="button"
+            onClick={onDriveConnect}
+            className="shrink-0 rounded-full bg-strong px-3.5 py-2 text-[12px] font-medium text-onstrong transition-opacity hover:opacity-90"
+          >
+            Connect Google Drive
+          </button>
+        </div>
       ) : null}
 
       <h2 className="mt-7 text-[15px] font-semibold">Clause categories</h2>
@@ -197,7 +241,7 @@ export default function Documents({
               <p className="mt-1 text-[12px] text-ink-4">
                 {inGroup.length +
                   " clauses" +
-                  (flagged.length ? " \u00b7 " + flagged.length + " flagged" : "")}
+                  (flagged.length ? " \\u00b7 " + flagged.length + " flagged" : "")}
               </p>
             </div>
           )
@@ -245,7 +289,7 @@ export default function Documents({
                     </span>
                     <span className="block text-[12px] text-ink-4">
                       {doc.clauseCount +
-                        " clauses \u00b7 " +
+                        " clauses \\u00b7 " +
                         doc.findingCount +
                         " findings"}
                     </span>
@@ -314,7 +358,7 @@ export default function Documents({
                 ? "The first request can take up to a minute if the API was idle."
                 : documents.length
                   ? "Clear the search box to see everything saved to your account."
-                  : "Drop a contract anywhere on this page, or use Upload. The file needs selectable text, so scans will not work."}
+                  : "Drop a contract anywhere on this page, or import from Drive. The file needs selectable text, so scans will not work."}
             </p>
           </div>
         )}

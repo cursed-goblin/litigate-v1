@@ -16,6 +16,13 @@ import type { View } from "@/components/Sidebar"
 import { explainFindings, getHealth, uploadContract } from "@/lib/api"
 import type { Explanation, Health, ParsedContract } from "@/lib/api"
 import { authConfigured, supabase } from "@/lib/supabase"
+import {
+  connectDrive,
+  downloadFile,
+  driveConfigured,
+  driveToken,
+  pickFiles,
+} from "@/lib/drive"
 import type { DocumentRecord } from "@/lib/session"
 import {
   deleteDocument,
@@ -45,6 +52,9 @@ export default function Page() {
   const [busy, setBusy] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [storeError, setStoreError] = useState<string | null>(null)
+  const [driveBusy, setDriveBusy] = useState(false)
+  const [driveStatus, setDriveStatus] = useState<string | null>(null)
+  const [driveError, setDriveError] = useState<string | null>(null)
   const [briefing, setBriefing] = useState<Record<string, Explanation>>({})
   const [briefingBusy, setBriefingBusy] = useState(false)
   const [briefingError, setBriefingError] = useState<string | null>(null)
@@ -282,6 +292,58 @@ export default function Page() {
     [ingest],
   )
 
+  // Drive files go through the same pipeline as a file chosen from disk:
+  // downloaded in the browser, then handed to ingest. Analysis, saving and
+  // briefing therefore behave identically whatever the source was, and the
+  // backend needs no knowledge of Google at all.
+  const importFromDrive = useCallback(async () => {
+    setDriveError(null)
+    setDriveStatus(null)
+
+    const token = await driveToken()
+    if (!token) {
+      setDriveError(
+        "Google Drive is not connected for this session. Connect it and Google will ask which files to share.",
+      )
+      return
+    }
+
+    setDriveBusy(true)
+    try {
+      const picked = await pickFiles(token)
+
+      // Sequential on purpose. The API is a single small instance and the
+      // model has a rate limit, so a burst of parallel uploads would fail
+      // most of them.
+      for (let index = 0; index < picked.length; index += 1) {
+        const file = picked[index]
+        setDriveStatus(
+          "Importing " + (index + 1) + " of " + picked.length + ": " + file.name,
+        )
+        const local = await downloadFile(file, token)
+        await ingest(local)
+      }
+    } catch (cause) {
+      setDriveError(
+        cause instanceof Error ? cause.message : "the Drive import failed",
+      )
+    } finally {
+      setDriveStatus(null)
+      setDriveBusy(false)
+    }
+  }, [ingest])
+
+  const connectDriveNow = useCallback(() => {
+    setDriveError(null)
+    void connectDrive().catch((cause: unknown) => {
+      setDriveError(
+        cause instanceof Error
+          ? cause.message
+          : "Google Drive could not be connected",
+      )
+    })
+  }, [])
+
   const signOut = useCallback(() => {
     if (!supabase) {
       return
@@ -292,6 +354,7 @@ export default function Page() {
     setActiveId(null)
     setBriefing({})
     setStoreError(null)
+    setDriveError(null)
     setView("dashboard")
   }, [])
 
@@ -362,10 +425,16 @@ export default function Page() {
             busy={busy}
             uploadError={uploadError}
             storeError={storeError}
+            driveReady={driveConfigured && authConfigured}
+            driveBusy={driveBusy}
+            driveStatus={driveStatus}
+            driveError={driveError}
             onUpload={pick}
             onDrop={onDrop}
             onOpen={openDocument}
             onDelete={removeDocument}
+            onDriveImport={() => void importFromDrive()}
+            onDriveConnect={connectDriveNow}
           />
         ) : null}
 
