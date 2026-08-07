@@ -1,7 +1,11 @@
-const RAW_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7860"
+// The API is a public endpoint rather than a secret, so the deployed backend
+// is a safe default. An env var still wins when one is supplied, which keeps
+// local development pointing at localhost.
+const FALLBACK_BASE = "https://litigate-v1.onrender.com"
+const RAW_BASE = process.env.NEXT_PUBLIC_API_URL || FALLBACK_BASE
 
-// A trailing slash on the env var produces a double slash in every request
-// path, which the API answers with a bare 404. Strip it once, here.
+// A trailing slash produces a double slash in every request path, which the
+// API answers with a bare 404. Strip it once, here.
 export const API_BASE = RAW_BASE.trim().replace(/\/+$/, "")
 
 export type Severity = "high" | "medium" | "low"
