@@ -1,6 +1,8 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7860"
 
+export type Severity = "high" | "medium" | "low"
+
 export type Health = {
   status: string
   version: string
@@ -10,6 +12,7 @@ export type Health = {
     gemini: boolean
   }
   cache: boolean
+  playbook?: string
 }
 
 export type Clause = {
@@ -18,6 +21,38 @@ export type Clause = {
   title: string
   text: string
   words: number
+  type?: string
+}
+
+export type Finding = {
+  id: string
+  ruleId: string
+  clauseId: string
+  clauseNumber: string
+  clauseTitle: string
+  clauseType: string
+  severity: Severity
+  title: string
+  detail: string
+  observed: string
+  evidence: string
+  policy: string
+  grounded: boolean
+}
+
+export type Summary = {
+  total: number
+  high: number
+  medium: number
+  low: number
+  riskScore: number
+  riskBand: Severity
+  grounded: number
+  clausesAnalysed: number
+  contractValue: number
+  liabilityCap: number
+  playbook: string
+  rulesEvaluated: number
 }
 
 export type ParsedContract = {
@@ -26,6 +61,8 @@ export type ParsedContract = {
   characters: number
   clauseCount: number
   clauses: Clause[]
+  findings?: Finding[]
+  summary?: Summary
 }
 
 async function request<T>(path: string): Promise<T> {

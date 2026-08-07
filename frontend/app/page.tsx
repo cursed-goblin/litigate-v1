@@ -1,12 +1,13 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { DragEvent } from "react"
 
 import {
   API_BASE,
   getHealth,
   uploadContract,
+  type Finding,
   type Health,
   type ParsedContract,
 } from "@/lib/api"
@@ -22,6 +23,32 @@ const SHEETS = [
 
 const ACCEPT = ".pdf,.docx,.txt,.md"
 const DASH = "\u2014"
+const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 }
+
+const TEXT_TONE: Record<string, string> = {
+  high: "text-severity-red-i",
+  medium: "text-severity-amber-i",
+  low: "text-severity-green-i",
+}
+
+const FILL_TONE: Record<string, string> = {
+  high: "bg-severity-red-p",
+  medium: "bg-severity-amber-p",
+  low: "bg-severity-green-p",
+}
+
+const EDGE_TONE: Record<string, string> = {
+  high: "border-severity-red-p",
+  medium: "border-severity-amber-p",
+  low: "border-severity-green-p",
+}
+
+function rupees(value: number | undefined) {
+  if (!value || value <= 0) {
+    return DASH
+  }
+  return "INR " + value.toLocaleString("en-IN")
+}
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -29,6 +56,66 @@ function Field({ label, value }: { label: string; value: string }) {
       <dt className="text-parchment/40">{label}</dt>
       <dd className="truncate text-right text-parchment/90">{value}</dd>
     </div>
+  )
+}
+
+function FindingCard({
+  finding,
+  onSelect,
+}: {
+  finding: Finding
+  onSelect: (clauseId: string) => void
+}) {
+  const tone = TEXT_TONE[finding.severity] ?? "text-parchment"
+  const edge = EDGE_TONE[finding.severity] ?? "border-ink-3"
+
+  return (
+    <article
+      onClick={() => finding.clauseId && onSelect(finding.clauseId)}
+      className={`cursor-pointer border border-ink-3 border-l-2 bg-ink-2 p-4 transition-colors hover:border-brass/40 ${edge}`}
+    >
+      <div className="flex items-baseline justify-between gap-4 font-mono text-[10px]">
+        <span className={tone}>
+          {finding.severity.toUpperCase()} {DASH} {finding.ruleId}
+        </span>
+        <span className="text-parchment/40">
+          {finding.clauseNumber ? "CLAUSE " + finding.clauseNumber : "NOT PRESENT"}
+        </span>
+      </div>
+
+      <p className="mt-2 font-serif text-sm text-parchment/90">{finding.title}</p>
+
+      <p className="mt-1 font-mono text-[11px] text-brass">{finding.observed}</p>
+
+      <p className="mt-3 font-sans text-[12px] leading-6 text-parchment/60">
+        {finding.detail}
+      </p>
+
+      {finding.evidence ? (
+        <blockquote className="mt-3 border-l-2 border-brass pl-3 font-serif text-[12px] leading-6 text-parchment/75">
+          {finding.evidence}
+        </blockquote>
+      ) : null}
+
+      <div className="mt-3 border-t border-ink-3 pt-2 font-mono text-[10px] text-parchment/40">
+        <p>{finding.policy}</p>
+        <p className="mt-1">
+          <span
+            className={
+              finding.grounded
+                ? "text-severity-green-i"
+                : "text-severity-amber-i"
+            }
+          >
+            {finding.grounded ? "GROUNDED" : "NEEDS VERIFICATION"}
+          </span>
+          <span className="text-parchment/30">
+            {" "}
+            {DASH} quoted text verified against the source clause
+          </span>
+        </p>
+      </div>
+    </article>
   )
 }
 
@@ -82,10 +169,39 @@ export default function Page() {
     [ingest],
   )
 
+  const reveal = useCallback((clauseId: string) => {
+    setSelected(clauseId)
+    if (typeof document !== "undefined") {
+      document
+        .getElementById(clauseId)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }, [])
+
+  const findings = useMemo(() => {
+    const list = contract?.findings ?? []
+    return [...list].sort(
+      (a, b) => (RANK[b.severity] ?? 0) - (RANK[a.severity] ?? 0),
+    )
+  }, [contract])
+
+  const worst = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const finding of contract?.findings ?? []) {
+      if (!finding.clauseId) {
+        continue
+      }
+      const current = map[finding.clauseId]
+      if (!current || (RANK[finding.severity] ?? 0) > (RANK[current] ?? 0)) {
+        map[finding.clauseId] = finding.severity
+      }
+    }
+    return map
+  }, [contract])
+
+  const summary = contract?.summary
   const active = contract?.clauses.find((item) => item.id === selected) ?? null
-  const words = contract
-    ? contract.clauses.reduce((total, item) => total + item.words, 0)
-    : 0
+  const activeFindings = findings.filter((item) => item.clauseId === selected)
 
   return (
     <div className="flex h-screen flex-col">
@@ -97,6 +213,15 @@ export default function Page() {
               ? `${contract.filename} ${DASH} ${contract.clauseCount} clauses`
               : "no document loaded"}
           </span>
+          {summary ? (
+            <span
+              className={`font-mono text-[11px] ${
+                TEXT_TONE[summary.riskBand] ?? "text-parchment"
+              }`}
+            >
+              {DASH} RISK {summary.riskScore} {DASH} {summary.total} findings
+            </span>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-4 font-mono text-[11px]">
@@ -119,12 +244,10 @@ export default function Page() {
             onClick={() => inputRef.current?.click()}
             className="border border-brass/50 px-2 py-1 text-brass transition-colors hover:bg-brass/10 disabled:opacity-40"
           >
-            {busy ? "PARSING..." : "OPEN DOCUMENT"}
+            {busy ? "ANALYSING..." : "OPEN DOCUMENT"}
           </button>
           <span
-            className={
-              health ? "text-severity-green-i" : "text-severity-red-i"
-            }
+            className={health ? "text-severity-green-i" : "text-severity-red-i"}
           >
             {health ? "API ONLINE" : "API OFFLINE"}
           </span>
@@ -138,7 +261,19 @@ export default function Page() {
         </div>
       </header>
 
-      <div className="h-[5px] shrink-0 bg-ink-3" />
+      <div className="flex h-[5px] shrink-0 gap-px bg-ink-3">
+        {contract?.clauses.map((clause) => (
+          <button
+            key={clause.id}
+            type="button"
+            title={`${clause.number} ${clause.title}`}
+            onClick={() => reveal(clause.id)}
+            className={`h-full flex-1 ${
+              FILL_TONE[worst[clause.id]] ?? "bg-ink-3"
+            }`}
+          />
+        ))}
+      </div>
 
       <main className="grid min-h-0 flex-1 grid-cols-2">
         <section
@@ -148,40 +283,46 @@ export default function Page() {
         >
           {contract ? (
             <div className="space-y-6">
-              {contract.clauses.map((clause) => (
-                <article
-                  key={clause.id}
-                  onClick={() => setSelected(clause.id)}
-                  className={`cursor-pointer border-l-2 pl-4 transition-colors ${
-                    clause.id === selected
-                      ? "border-brass"
-                      : "border-transparent hover:border-brass/40"
-                  }`}
-                >
-                  <h3 className="font-serif text-base text-ink">
-                    <span className="font-mono text-[11px] text-ink/40">
-                      {clause.number}
-                    </span>{" "}
-                    {clause.title}
-                  </h3>
-                  {clause.text ? (
-                    <p className="mt-2 whitespace-pre-wrap font-serif text-sm leading-7 text-ink/75">
-                      {clause.text}
-                    </p>
-                  ) : null}
-                </article>
-              ))}
+              {contract.clauses.map((clause) => {
+                const flag = worst[clause.id]
+                return (
+                  <article
+                    key={clause.id}
+                    id={clause.id}
+                    onClick={() => setSelected(clause.id)}
+                    className={`cursor-pointer border-l-2 pl-4 transition-colors ${
+                      clause.id === selected
+                        ? "border-brass"
+                        : flag
+                          ? EDGE_TONE[flag]
+                          : "border-transparent hover:border-brass/40"
+                    }`}
+                  >
+                    <h3 className="font-serif text-base text-ink">
+                      <span className="font-mono text-[11px] text-ink/40">
+                        {clause.number}
+                      </span>{" "}
+                      {clause.title}
+                    </h3>
+                    {clause.text ? (
+                      <p className="mt-2 whitespace-pre-wrap font-serif text-sm leading-7 text-ink/75">
+                        {clause.text}
+                      </p>
+                    ) : null}
+                  </article>
+                )
+              })}
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-center">
               <p className="font-serif text-2xl text-ink/80">Open a contract</p>
               <p className="mt-3 max-w-sm font-sans text-sm leading-6 text-ink/50">
                 Drop a PDF, DOCX, or TXT file here, or use the button above.
-                Scanned pages without selectable text are not supported.
+                The file needs selectable text, so scans will not work.
               </p>
               {busy ? (
                 <p className="mt-6 font-mono text-[11px] text-ink/50">
-                  Parsing. The first request can take a minute if the API was
+                  Analysing. The first request can take a minute if the API was
                   idle.
                 </p>
               ) : null}
@@ -195,23 +336,76 @@ export default function Page() {
         </section>
 
         <section className="overflow-y-auto bg-ink px-8 py-8">
-          <h2 className="font-serif text-lg">Analysis</h2>
+          {summary ? (
+            <div className="border border-ink-3 bg-ink-2 p-4">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-serif text-lg">Risk assessment</h2>
+                <span
+                  className={`font-mono text-2xl ${
+                    TEXT_TONE[summary.riskBand] ?? "text-parchment"
+                  }`}
+                >
+                  {summary.riskScore}
+                </span>
+              </div>
+              <div className="mt-3 flex gap-5 font-mono text-[11px]">
+                <span className="text-severity-red-i">{summary.high} high</span>
+                <span className="text-severity-amber-i">
+                  {summary.medium} medium
+                </span>
+                <span className="text-severity-green-i">{summary.low} low</span>
+              </div>
+              <p className="mt-3 font-sans text-[12px] leading-6 text-parchment/50">
+                {summary.rulesEvaluated} playbook rules applied to{" "}
+                {summary.clausesAnalysed} substantive clauses.{" "}
+                {summary.grounded} of {summary.total} findings quote text
+                verified against the source document.
+              </p>
+            </div>
+          ) : (
+            <h2 className="font-serif text-lg">Analysis</h2>
+          )}
 
           {active ? (
             <div className="mt-6 border border-ink-3 bg-ink-2 p-4">
               <p className="font-mono text-[11px] text-brass">
                 CLAUSE {active.number} {DASH} {active.words} words
+                {active.type ? " " + DASH + " " + active.type : ""}
               </p>
               <p className="mt-2 font-serif text-sm text-parchment/90">
                 {active.title}
               </p>
-              <p className="mt-3 max-h-64 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-6 text-parchment/60">
+              <p className="mt-3 max-h-40 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-6 text-parchment/60">
                 {active.text || "This heading has no body text."}
               </p>
+              <p className="mt-3 font-mono text-[10px] text-parchment/40">
+                {activeFindings.length
+                  ? activeFindings.length + " finding(s) on this clause"
+                  : "no policy breach detected on this clause"}
+              </p>
             </div>
+          ) : null}
+
+          {findings.length ? (
+            <div className="mt-6 space-y-4">
+              <h3 className="font-mono text-[11px] text-parchment/40">
+                FINDINGS {DASH} HIGHEST SEVERITY FIRST
+              </h3>
+              {findings.map((finding) => (
+                <FindingCard
+                  key={finding.id}
+                  finding={finding}
+                  onSelect={reveal}
+                />
+              ))}
+            </div>
+          ) : contract ? (
+            <p className="mt-6 font-sans text-sm text-parchment/50">
+              No policy breaches were detected in this document.
+            </p>
           ) : (
             <p className="mt-4 font-sans text-sm text-parchment/50">
-              Load a document and select a clause to inspect it.
+              Load a document to run the playbook against it.
             </p>
           )}
 
@@ -221,11 +415,9 @@ export default function Page() {
               label="CLAUSES"
               value={contract ? String(contract.clauseCount) : DASH}
             />
-            <Field label="WORDS" value={contract ? String(words) : DASH} />
-            <Field
-              label="CHARACTERS"
-              value={contract ? String(contract.characters) : DASH}
-            />
+            <Field label="CONTRACT VALUE" value={rupees(summary?.contractValue)} />
+            <Field label="LIABILITY CAP" value={rupees(summary?.liabilityCap)} />
+            <Field label="PLAYBOOK" value={summary?.playbook ?? DASH} />
           </dl>
 
           <dl className="mt-6 space-y-3 font-mono text-[12px]">
@@ -239,7 +431,6 @@ export default function Page() {
                 health ? (health.providers.groq ? "present" : "missing") : DASH
               }
             />
-            <Field label="CACHE" value={health ? String(health.cache) : DASH} />
           </dl>
         </section>
       </main>
