@@ -13,11 +13,17 @@ from .rules import evaluate, load_playbook, playbook_name
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
-app = FastAPI(title="Litigate API", version="0.4.0")
+# Static hosts hand out a new hostname per deploy, so an exact allowlist goes
+# stale every time the frontend is redeployed. Match the deploy domains by
+# shape instead. Credentials are never sent, so this exposes nothing.
+CORS_ORIGIN_REGEX = r"https://([a-z0-9-]+\.)*(zenvx\.in|pages\.dev|workers\.dev)"
+
+app = FastAPI(title="Litigate API", version="0.4.1")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,6 +56,8 @@ def health() -> dict:
         },
         "cache": settings.use_cache,
         "playbook": playbook_name(),
+        "corsOrigins": settings.cors_origins,
+        "corsOriginRegex": CORS_ORIGIN_REGEX,
     }
 
 
