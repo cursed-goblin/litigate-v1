@@ -1,0 +1,214 @@
+{
+  "name": "Meridian Systems Contracting Playbook",
+  "version": "1.0",
+  "owner": "Legal Operations",
+  "requiredClauses": [
+    {
+      "type": "audit_rights",
+      "severity": "high",
+      "title": "No audit rights clause",
+      "detail": "The agreement grants no right to inspect the supplier records, systems or controls. Without audit rights there is no contractual mechanism to verify service levels, security posture or charges, and no evidence trail for regulators.",
+      "policy": "Procurement Standard 7.1 - Every agreement above INR 1,00,00,000 shall include a right to audit supplier records on reasonable notice."
+    },
+    {
+      "type": "limitation_of_liability",
+      "severity": "high",
+      "title": "No limitation of liability clause",
+      "detail": "The agreement does not allocate liability between the parties, leaving exposure undefined.",
+      "policy": "Legal Policy 9.1 - Every agreement shall state an express limitation of liability."
+    },
+    {
+      "type": "data_protection",
+      "severity": "high",
+      "title": "No data protection clause",
+      "detail": "The agreement contemplates the processing of personal data without any protective terms.",
+      "policy": "Privacy Policy 2.4 - Agreements involving personal data shall include processing, transfer and breach terms."
+    },
+    {
+      "type": "confidentiality",
+      "severity": "medium",
+      "title": "No confidentiality clause",
+      "detail": "Commercially sensitive information may be exchanged without any obligation of confidence.",
+      "policy": "Legal Policy 7.1 - Every agreement shall include mutual confidentiality obligations."
+    },
+    {
+      "type": "governing_law",
+      "severity": "medium",
+      "title": "No governing law clause",
+      "detail": "The applicable law is unstated, creating uncertainty over which courts and rules apply.",
+      "policy": "Legal Policy 15.1 - Every agreement shall state a governing law."
+    }
+  ],
+  "rules": [
+    {
+      "id": "PAY-01",
+      "clauseType": "payment_terms",
+      "check": "max_days",
+      "limit": 30,
+      "severity": "high",
+      "title": "Payment window exceeds policy maximum",
+      "detail": "Undisputed invoices must be settled within 30 days. A longer window ties up working capital and weakens the commercial lever available if the supplier underperforms.",
+      "policy": "Finance Policy 4.2 - Undisputed supplier invoices shall be settled within 30 days of receipt."
+    },
+    {
+      "id": "PAY-02",
+      "clauseType": "payment_terms",
+      "check": "forbidden_phrase",
+      "phrases": ["deemed accepted"],
+      "severity": "medium",
+      "title": "Invoice dispute window forecloses later challenge",
+      "detail": "Invoices become unchallengeable once a short window lapses. Billing errors discovered during routine reconciliation would no longer be recoverable.",
+      "policy": "Finance Policy 4.5 - The right to dispute an invoice shall survive for not less than 90 days from receipt."
+    },
+    {
+      "id": "LIA-01",
+      "clauseType": "limitation_of_liability",
+      "check": "min_cap_ratio",
+      "limit": 0.25,
+      "severity": "high",
+      "title": "Liability cap is disproportionate to contract value",
+      "detail": "The recoverable amount is a small fraction of what is being spent. If the engagement fails, the contractual remedy would not cover the cost of replacing the supplier, let alone the resulting business loss.",
+      "policy": "Legal Policy 9.3 - Supplier liability shall be capped at no less than 25 percent of the aggregate contract value."
+    },
+    {
+      "id": "LIA-02",
+      "clauseType": "limitation_of_liability",
+      "check": "forbidden_phrase",
+      "phrases": ["breach of confidentiality", "infringement of intellectual property", "breach of data protection"],
+      "severity": "high",
+      "title": "Liability cap extends to matters that must be carved out",
+      "detail": "Confidentiality breaches, data protection failures and intellectual property infringement are capped alongside ordinary commercial claims. These categories carry regulatory and reputational exposure far exceeding any negotiated cap.",
+      "policy": "Legal Policy 9.4 - Confidentiality, data protection and intellectual property claims shall be excluded from the liability cap."
+    },
+    {
+      "id": "CON-01",
+      "clauseType": "confidentiality",
+      "check": "min_months",
+      "limit": 36,
+      "severity": "high",
+      "title": "Confidentiality survival period is too short",
+      "detail": "Confidentiality obligations lapse well before the information stops being sensitive. Pricing models, architecture and customer lists retain commercial value for years after an engagement ends.",
+      "policy": "Legal Policy 7.3 - Confidentiality obligations shall survive for not less than 36 months after termination."
+    },
+    {
+      "id": "DAT-01",
+      "clauseType": "data_protection",
+      "check": "forbidden_phrase",
+      "phrases": ["any jurisdiction", "shall not be required to notify"],
+      "severity": "high",
+      "title": "Unrestricted cross border transfer of personal data",
+      "detail": "Personal data may be moved to undisclosed locations and handled by undisclosed sub processors. This removes the ability to assess transfer risk or to answer a regulator asking where the data resides.",
+      "policy": "Privacy Policy 3.2 - Cross border transfers require prior written approval and a disclosed list of sub processors."
+    },
+    {
+      "id": "DAT-02",
+      "clauseType": "data_protection",
+      "check": "max_days",
+      "limit": 3,
+      "severity": "high",
+      "title": "Breach notification period is too long",
+      "detail": "The notification window leaves the organisation unaware of a breach for an extended period. Statutory reporting duties begin when the breach occurs, not when the supplier chooses to disclose it.",
+      "policy": "Privacy Policy 5.1 - Suppliers shall report any confirmed personal data breach within 72 hours."
+    },
+    {
+      "id": "IND-01",
+      "clauseType": "indemnity",
+      "check": "forbidden_phrase",
+      "phrases": ["unlimited in amount", "is not subject to"],
+      "severity": "high",
+      "title": "Indemnity is uncapped and asymmetric",
+      "detail": "One party accepts unlimited indemnity exposure while the other stays protected by the liability cap. The practical ceiling on loss is therefore unbounded on one side and tightly limited on the other.",
+      "policy": "Legal Policy 10.2 - Indemnities shall be mutual and subject to the agreed liability cap."
+    },
+    {
+      "id": "TER-01",
+      "clauseType": "termination",
+      "check": "forbidden_phrase",
+      "phrases": ["no corresponding right", "shall have no corresponding"],
+      "severity": "high",
+      "title": "Termination rights are one sided",
+      "detail": "The supplier may exit at will while the other party is locked in absent proven material breach. This removes any ability to leave a failing engagement without litigating.",
+      "policy": "Legal Policy 13.1 - Rights of termination for convenience shall be mutual."
+    },
+    {
+      "id": "TER-02",
+      "clauseType": "termination",
+      "check": "forbidden_phrase",
+      "phrases": ["early termination fee", "remainder of the then current term"],
+      "severity": "medium",
+      "title": "Termination triggers payment for the unused term",
+      "detail": "Exiting the agreement requires paying for services that will never be received, which makes the right to terminate commercially theoretical.",
+      "policy": "Finance Policy 13.4 - Early termination charges shall not exceed three months of the applicable charges."
+    },
+    {
+      "id": "FOR-01",
+      "clauseType": "force_majeure",
+      "check": "forbidden_phrase",
+      "phrases": ["economic conditions", "cost of labour", "commercial circumstances"],
+      "severity": "medium",
+      "title": "Force majeure definition is overbroad",
+      "detail": "Ordinary commercial pressures such as cost inflation are treated as excusing events. This converts a narrow protection against catastrophe into a general excuse for non performance.",
+      "policy": "Legal Policy 14.2 - Force majeure shall be limited to events genuinely beyond the control of the affected party and shall exclude economic hardship."
+    },
+    {
+      "id": "GOV-01",
+      "clauseType": "governing_law",
+      "check": "required_phrase",
+      "phrases": ["laws of india", "indian law", "republic of india"],
+      "severity": "high",
+      "title": "Governing law is not India",
+      "detail": "Disputes would be decided under foreign law, raising the cost of enforcement and requiring foreign counsel. Indian statutory protections would not apply by default.",
+      "policy": "Legal Policy 15.1 - Agreements with Indian entities shall be governed by the laws of India unless approved by the General Counsel."
+    },
+    {
+      "id": "DIS-01",
+      "clauseType": "dispute_resolution",
+      "check": "forbidden_phrase",
+      "phrases": ["bear its own costs regardless"],
+      "severity": "medium",
+      "title": "Costs are not recoverable by the successful party",
+      "detail": "Each side funds its own costs whatever the outcome, which discourages pursuing meritorious claims of modest value and rewards the party with deeper pockets.",
+      "policy": "Legal Policy 15.4 - Arbitration provisions shall permit the tribunal to award costs to the successful party."
+    },
+    {
+      "id": "ASG-01",
+      "clauseType": "assignment",
+      "check": "forbidden_phrase",
+      "phrases": ["without the prior consent", "absolute discretion"],
+      "severity": "medium",
+      "title": "Assignment rights are one sided",
+      "detail": "The supplier may transfer the contract freely, including to a competitor or a weaker entity, while the other party requires consent that may be withheld at will.",
+      "policy": "Legal Policy 16.1 - Assignment shall require the prior written consent of both parties, not to be unreasonably withheld."
+    },
+    {
+      "id": "REN-01",
+      "clauseType": "renewal",
+      "check": "max_days",
+      "limit": 90,
+      "severity": "medium",
+      "title": "Non renewal notice window is excessive",
+      "detail": "The decision to exit must be taken far ahead of the renewal date. Missing the window commits the organisation to another full term automatically.",
+      "policy": "Procurement Standard 3.3 - Notice periods for non renewal shall not exceed 90 days."
+    },
+    {
+      "id": "REN-02",
+      "clauseType": "renewal",
+      "check": "forbidden_phrase",
+      "phrases": ["no right to terminate", "automatically renew"],
+      "severity": "medium",
+      "title": "Automatic renewal without an exit right",
+      "detail": "The agreement extends itself and price increases can be imposed without a corresponding right to walk away, removing any leverage at the point of renewal.",
+      "policy": "Procurement Standard 3.5 - Automatic renewal requires an accompanying right to terminate on notice."
+    },
+    {
+      "id": "WAR-01",
+      "clauseType": "warranty",
+      "check": "forbidden_phrase",
+      "phrases": ["as is", "excluded to the fullest extent"],
+      "severity": "low",
+      "title": "Implied warranties are fully disclaimed",
+      "detail": "Statutory and common law quality protections are removed, leaving only the narrow express warranties stated in the agreement.",
+      "policy": "Legal Policy 12.3 - Warranty disclaimers shall preserve fitness for purpose and conformity with specification."
+    }
+  ]
+}

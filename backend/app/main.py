@@ -7,10 +7,11 @@ from .clauses import split_clauses
 from .config import settings
 from .extract import ExtractionError, extract_text
 from .llm import LLMError, complete_json
+from .rules import evaluate, load_playbook, playbook_name
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
-app = FastAPI(title="Litigate API", version="0.2.0")
+app = FastAPI(title="Litigate API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,6 +38,29 @@ def health() -> dict:
             "gemini": bool(settings.gemini_api_key),
         },
         "cache": settings.use_cache,
+        "playbook": playbook_name(),
+    }
+
+
+@app.get("/api/playbook")
+def playbook() -> dict:
+    book = load_playbook()
+    return {
+        "name": book.get("name"),
+        "version": book.get("version"),
+        "owner": book.get("owner"),
+        "ruleCount": len(book.get("rules", [])),
+        "requiredClauseCount": len(book.get("requiredClauses", [])),
+        "rules": [
+            {
+                "id": rule.get("id"),
+                "clauseType": rule.get("clauseType"),
+                "severity": rule.get("severity"),
+                "title": rule.get("title"),
+                "policy": rule.get("policy"),
+            }
+            for rule in book.get("rules", [])
+        ],
     }
 
 
@@ -67,10 +91,16 @@ async def upload_contract(file: UploadFile = File(...)) -> dict:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     clauses = split_clauses(text)
+    findings, summary, types = evaluate(text, clauses)
+
     return {
         "filename": file.filename,
         "bytes": len(data),
         "characters": len(text),
         "clauseCount": len(clauses),
-        "clauses": [asdict(clause) for clause in clauses],
+        "clauses": [
+            dict(asdict(clause), type=types.get(clause.id, "other")) for clause in clauses
+        ],
+        "findings": [asdict(finding) for finding in findings],
+        "summary": summary,
     }
