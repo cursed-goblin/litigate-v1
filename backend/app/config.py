@@ -39,6 +39,9 @@ class Settings:
     cache_dir: str = os.getenv("CACHE_DIR", "/tmp/litigate-cache")
     use_cache: bool = os.getenv("USE_CACHE", "true").lower() == "true"
 
+    # There is deliberately no fallback recipient. Reports go to the address
+    # on the verified session and nowhere else, so a stale environment
+    # variable can never quietly redirect someone's contract review.
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
     alert_from: str = os.getenv("ALERT_FROM", DEFAULT_ALERT_FROM)
     auto_alert: bool = os.getenv("AUTO_ALERT", "true").lower() == "true"
@@ -52,12 +55,6 @@ class Settings:
         default_factory=lambda: _split(
             os.getenv("GROQ_MODEL_FALLBACKS", DEFAULT_GROQ_FALLBACKS)
         )
-    )
-
-    # Fallback owners, used when no one is signed in. Signed in users always
-    # receive alerts at their own verified address instead.
-    alert_to: list[str] = field(
-        default_factory=lambda: _split(os.getenv("ALERT_TO", ""))
     )
 
     cors_origins: list[str] = field(

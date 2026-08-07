@@ -33,7 +33,7 @@ CORS_ORIGIN_REGEX = r"https://([a-z0-9-]+\.)*(zenvx\.in|pages\.dev|workers\.dev)
 
 FEATURES = ["upload", "rules", "explain", "chat", "email", "auth", "scoring"]
 
-app = FastAPI(title="Litigate API", version="0.8.0")
+app = FastAPI(title="Litigate API", version="0.9.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -68,10 +68,15 @@ async def resolve_recipients(
 ) -> list[str]:
     """Decide who receives an alert.
 
-    A verified account always wins. The address in the request body is only
-    honoured when auth is switched off entirely, which is the local
-    development case. Otherwise this endpoint could be used to send mail to
-    strangers.
+    Every report goes to the address on the verified session, and to no one
+    else. There is no configured fallback owner: if the token is missing or
+    expired, nothing is sent at all. That is the safer failure, because a
+    contract review naming a specific counterparty should never be delivered
+    to whoever an environment variable happened to name.
+
+    The address in the request body is honoured only when authentication is
+    switched off entirely, which is the local development case. Trusting it
+    otherwise would turn this endpoint into an open relay.
     """
     signed_in = await current_email(authorization)
     if signed_in:
@@ -80,7 +85,7 @@ async def resolve_recipients(
     if not auth_configured() and requested:
         return [item.strip() for item in requested if item.strip()]
 
-    return list(settings.alert_to)
+    return []
 
 
 @app.get("/")
@@ -109,7 +114,8 @@ def health() -> dict:
         "mail": {
             "configured": mail_configured(),
             "auto": settings.auto_alert,
-            "recipients": len(settings.alert_to),
+            "recipients": 1 if auth_configured() else 0,
+            "target": "signed in account",
         },
         "auth": {"configured": auth_configured()},
         "scoring": score_model(),
@@ -175,9 +181,9 @@ async def upload_contract(
     findings, summary, types = evaluate(text, clauses)
     payload = [asdict(finding) for finding in findings]
 
-    # A high risk contract notifies its owner without anyone asking. The send
-    # is queued after the response so a mail outage cannot delay or fail the
-    # analysis the user is waiting for.
+    # A high risk contract notifies the person who uploaded it without anyone
+    # asking. The send is queued after the response so a mail outage cannot
+    # delay or fail the analysis the user is waiting for.
     if (
         settings.auto_alert
         and mail_configured()
@@ -249,7 +255,10 @@ async def notify(
     recipients = await resolve_recipients(authorization, payload.to)
 
     if not recipients:
-        raise HTTPException(status_code=401, detail="sign in to receive alerts")
+        raise HTTPException(
+            status_code=401,
+            detail="sign in again to receive the report",
+        )
     if not payload.summary:
         raise HTTPException(status_code=400, detail="analyse a contract first")
 
