@@ -51,7 +51,7 @@ export default function RiskRegister({
             className={
               "rounded-full border px-3.5 py-1.5 text-[12px] font-medium capitalize transition-colors " +
               (filter === value
-                ? "border-ink bg-ink text-white"
+                ? "border-strong bg-strong text-onstrong"
                 : "border-line bg-surface text-ink-2 hover:bg-canvas")
             }
           >

@@ -88,7 +88,7 @@ export default function Dashboard({
         <button
           type="button"
           onClick={onUpload}
-          className="flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 rounded-full bg-strong px-4 py-2.5 text-[13px] font-medium text-onstrong transition-opacity hover:opacity-90"
         >
           <UploadIcon className="h-4 w-4" />
           Upload
