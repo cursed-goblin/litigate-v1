@@ -65,12 +65,36 @@ export type ParsedContract = {
   summary?: Summary
 }
 
+export type Explanation = {
+  plain: string
+  impact: string
+  ask: string
+}
+
+export type ExplainResult = {
+  explanations: Record<string, Explanation>
+  requested: number
+  returned: number
+}
+
 async function request<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, { cache: "no-store" })
   if (!response.ok) {
     throw new Error(`${path} responded ${response.status}`)
   }
   return response.json() as Promise<T>
+}
+
+async function detailOf(response: Response, fallback: string) {
+  try {
+    const payload = (await response.json()) as { detail?: string }
+    if (payload?.detail) {
+      return String(payload.detail)
+    }
+  } catch {
+    // the error body was not json
+  }
+  return fallback
 }
 
 export function getHealth(): Promise<Health> {
@@ -87,17 +111,33 @@ export async function uploadContract(file: File): Promise<ParsedContract> {
   })
 
   if (!response.ok) {
-    let detail = `upload failed with status ${response.status}`
-    try {
-      const payload = (await response.json()) as { detail?: string }
-      if (payload?.detail) {
-        detail = String(payload.detail)
-      }
-    } catch {
-      // the error body was not json
-    }
-    throw new Error(detail)
+    throw new Error(
+      await detailOf(response, `upload failed with status ${response.status}`),
+    )
   }
 
   return response.json() as Promise<ParsedContract>
+}
+
+/**
+ * Ask the API to reword proven findings for a non-lawyer reader.
+ * Deliberately a second request: the findings are already on screen by the
+ * time this runs, so a model outage costs prose and nothing else.
+ */
+export async function explainFindings(
+  findings: Finding[],
+): Promise<ExplainResult> {
+  const response = await fetch(`${API_BASE}/api/contracts/explain`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ findings }),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      await detailOf(response, `briefing failed with status ${response.status}`),
+    )
+  }
+
+  return response.json() as Promise<ExplainResult>
 }

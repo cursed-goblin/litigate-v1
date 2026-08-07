@@ -5,8 +5,10 @@ import type { DragEvent } from "react"
 
 import {
   API_BASE,
+  explainFindings,
   getHealth,
   uploadContract,
+  type Explanation,
   type Finding,
   type Health,
   type ParsedContract,
@@ -59,11 +61,27 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
+function Line({ label, value }: { label: string; value: string }) {
+  if (!value) {
+    return null
+  }
+  return (
+    <p className="mt-1 font-sans text-[12px] leading-6 text-parchment/60">
+      <span className="text-parchment/35">{label} </span>
+      {value}
+    </p>
+  )
+}
+
 function FindingCard({
   finding,
+  explanation,
+  pending,
   onSelect,
 }: {
   finding: Finding
+  explanation?: Explanation
+  pending: boolean
   onSelect: (clauseId: string) => void
 }) {
   const tone = TEXT_TONE[finding.severity] ?? "text-parchment"
@@ -97,6 +115,21 @@ function FindingCard({
         </blockquote>
       ) : null}
 
+      {explanation ? (
+        <div className="mt-4 border-t border-ink-3 pt-3">
+          <p className="font-mono text-[10px] text-brass">PLAIN ENGLISH</p>
+          <p className="mt-1 font-sans text-[12px] leading-6 text-parchment/85">
+            {explanation.plain}
+          </p>
+          <Line label="Impact:" value={explanation.impact} />
+          <Line label="Ask for:" value={explanation.ask} />
+        </div>
+      ) : pending ? (
+        <p className="mt-4 border-t border-ink-3 pt-3 font-mono text-[10px] text-parchment/30">
+          DRAFTING BRIEFING...
+        </p>
+      ) : null}
+
       <div className="mt-3 border-t border-ink-3 pt-2 font-mono text-[10px] text-parchment/40">
         <p>{finding.policy}</p>
         <p className="mt-1">
@@ -126,6 +159,9 @@ export default function Page() {
   const [selected, setSelected] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [briefing, setBriefing] = useState<Record<string, Explanation>>({})
+  const [briefingBusy, setBriefingBusy] = useState(false)
+  const [briefingError, setBriefingError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const check = useCallback(async () => {
@@ -145,16 +181,40 @@ export default function Page() {
   const ingest = useCallback(async (file: File) => {
     setBusy(true)
     setUploadError(null)
+    setBriefing({})
+    setBriefingError(null)
+
+    let parsed: ParsedContract
     try {
-      const parsed = await uploadContract(file)
+      parsed = await uploadContract(file)
       setContract(parsed)
       setSelected(parsed.clauses[0]?.id ?? null)
     } catch (cause) {
       setContract(null)
       setSelected(null)
       setUploadError(cause instanceof Error ? cause.message : "upload failed")
+      return
     } finally {
       setBusy(false)
+    }
+
+    // Second pass. The findings are already rendered, so this only ever
+    // adds prose on top of evidence the rule engine has already proven.
+    const list = parsed.findings ?? []
+    if (!list.length) {
+      return
+    }
+
+    setBriefingBusy(true)
+    try {
+      const result = await explainFindings(list)
+      setBriefing(result.explanations)
+    } catch (cause) {
+      setBriefingError(
+        cause instanceof Error ? cause.message : "briefing unavailable",
+      )
+    } finally {
+      setBriefingBusy(false)
     }
   }, [])
 
@@ -202,6 +262,7 @@ export default function Page() {
   const summary = contract?.summary
   const active = contract?.clauses.find((item) => item.id === selected) ?? null
   const activeFindings = findings.filter((item) => item.clauseId === selected)
+  const briefed = Object.keys(briefing).length
 
   return (
     <div className="flex h-screen flex-col">
@@ -361,6 +422,15 @@ export default function Page() {
                 {summary.grounded} of {summary.total} findings quote text
                 verified against the source document.
               </p>
+              <p className="mt-2 font-mono text-[10px] text-parchment/40">
+                {briefingBusy
+                  ? "BRIEFING " + DASH + " DRAFTING PLAIN ENGLISH..."
+                  : briefingError
+                    ? "BRIEFING UNAVAILABLE " + DASH + " FINDINGS UNAFFECTED"
+                    : briefed
+                      ? "BRIEFING " + DASH + " " + briefed + " OF " + summary.total + " EXPLAINED"
+                      : "BRIEFING " + DASH + " NOT REQUESTED"}
+              </p>
             </div>
           ) : (
             <h2 className="font-serif text-lg">Analysis</h2>
@@ -395,6 +465,8 @@ export default function Page() {
                 <FindingCard
                   key={finding.id}
                   finding={finding}
+                  explanation={briefing[finding.id]}
+                  pending={briefingBusy}
                   onSelect={reveal}
                 />
               ))}
