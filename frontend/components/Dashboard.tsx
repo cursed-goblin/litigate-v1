@@ -1,8 +1,9 @@
 "use client"
 
-import type { Finding, Summary } from "@/lib/api"
+import type { Finding, ParsedContract, Summary } from "@/lib/api"
 import type { DocumentRecord } from "@/lib/session"
 import { DASH, RISK_CHIP, RISK_FILL, RISK_TEXT, rupees, titleCase } from "@/lib/format"
+import EmailReport from "./EmailReport"
 import { AlertIcon, FileIcon, ScaleIcon, ShieldIcon, UploadIcon } from "./Icons"
 
 function Stat({
@@ -61,12 +62,14 @@ function Bar({
 }
 
 export default function Dashboard({
+  contract,
   summary,
   findings,
   documents,
   onOpenRisk,
   onUpload,
 }: {
+  contract: ParsedContract | null
   summary?: Summary
   findings: Finding[]
   documents: DocumentRecord[]
@@ -242,6 +245,8 @@ export default function Dashboard({
           </div>
         )}
       </div>
+
+      <EmailReport contract={contract} />
     </div>
   )
 }

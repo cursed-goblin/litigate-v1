@@ -10,6 +10,12 @@ export const API_BASE = RAW_BASE.trim().replace(/\/+$/, "")
 
 export type Severity = "high" | "medium" | "low"
 
+export type MailStatus = {
+  configured: boolean
+  auto: boolean
+  recipients: number
+}
+
 export type Health = {
   status: string
   version: string
@@ -21,6 +27,7 @@ export type Health = {
   cache: boolean
   playbook?: string
   features?: string[]
+  mail?: MailStatus
 }
 
 export type Clause = {
@@ -89,6 +96,12 @@ export type ChatAnswer = {
   answer: string
   clauses: string[]
   grounded: boolean
+}
+
+export type NotifyResult = {
+  sent: boolean
+  id?: string
+  recipients: string[]
 }
 
 export type PlaybookRule = {
@@ -200,5 +213,25 @@ export function askQuestion(
     "/api/chat",
     { question, clauses, findings },
     "assistant",
+  )
+}
+
+/**
+ * Email the risk report for a contract. An empty recipient tells the backend
+ * to use its own configured escalation contacts.
+ */
+export function sendRiskAlert(
+  to: string,
+  contract: ParsedContract,
+): Promise<NotifyResult> {
+  return postJson<NotifyResult>(
+    "/api/notify",
+    {
+      to: to ? [to] : [],
+      filename: contract.filename,
+      summary: contract.summary ?? {},
+      findings: contract.findings ?? [],
+    },
+    "email",
   )
 }

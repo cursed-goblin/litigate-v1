@@ -145,6 +145,7 @@ export default function Page() {
       <main className="min-w-0 flex-1 overflow-hidden">
         {view === "dashboard" ? (
           <Dashboard
+            contract={contract}
             summary={contract?.summary}
             findings={findings}
             documents={documents}
