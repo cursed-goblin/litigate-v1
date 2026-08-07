@@ -4,7 +4,7 @@ import type { DragEvent } from "react"
 
 import type { ParsedContract } from "@/lib/api"
 import type { DocumentRecord } from "@/lib/session"
-import { DASH, RISK_CHIP, fileSize, whenLabel } from "@/lib/format"
+import { RISK_CHIP, fileSize, whenLabel } from "@/lib/format"
 import { DotsIcon, FileIcon, FolderIcon, SearchIcon, UploadIcon } from "./Icons"
 
 const GROUPS: Array<{
@@ -138,8 +138,9 @@ export default function Documents({
               </div>
               <p className="mt-3 text-[13px] font-medium">{group.label}</p>
               <p className="mt-1 text-[12px] text-ink-4">
-                {inGroup.length} clauses
-                {flagged.length ? " \u00b7 " + flagged.length + " flagged" : ""}
+                {inGroup.length +
+                  " clauses" +
+                  (flagged.length ? " \u00b7 " + flagged.length + " flagged" : "")}
               </p>
             </div>
           )
@@ -148,7 +149,7 @@ export default function Documents({
 
       <h2 className="mt-7 text-[15px] font-semibold">Recent documents</h2>
       <div className="mt-3 overflow-hidden rounded-xl border border-line bg-surface shadow-card">
-        <div className="grid grid-cols-[minmax(0,1fr)_100px_150px_120px_60px] gap-4 border-b border-line px-5 py-3 text-[11px] font-semibold tracking-[0.04em] text-ink-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_100px_150px_130px_60px] gap-4 border-b border-line px-5 py-3 text-[11px] font-semibold tracking-[0.04em] text-ink-4">
           <span>NAME</span>
           <span>SIZE</span>
           <span>ANALYSED</span>
@@ -162,7 +163,7 @@ export default function Documents({
               key={doc.id}
               type="button"
               onClick={onOpen}
-              className="grid w-full grid-cols-[minmax(0,1fr)_100px_150px_120px_60px] items-center gap-4 border-b border-line px-5 py-3.5 text-left transition-colors last:border-0 hover:bg-canvas"
+              className="grid w-full grid-cols-[minmax(0,1fr)_100px_150px_130px_60px] items-center gap-4 border-b border-line px-5 py-3.5 text-left transition-colors last:border-0 hover:bg-canvas"
             >
               <span className="flex min-w-0 items-center gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-risk-high-soft text-risk-high">
@@ -173,7 +174,10 @@ export default function Documents({
                     {doc.name}
                   </span>
                   <span className="block text-[12px] text-ink-4">
-                    {doc.clauseCount} clauses \u00b7 {doc.findingCount} findings
+                    {doc.clauseCount +
+                      " clauses \u00b7 " +
+                      doc.findingCount +
+                      " findings"}
                   </span>
                 </span>
               </span>
@@ -188,7 +192,7 @@ export default function Documents({
                     (RISK_CHIP[doc.riskBand] ?? "")
                   }
                 >
-                  {doc.riskBand} {doc.riskScore}
+                  {doc.riskBand + " " + doc.riskScore}
                 </span>
               </span>
               <span className="flex justify-end text-ink-4">
