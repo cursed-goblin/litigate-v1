@@ -1,9 +1,18 @@
 from dataclasses import asdict
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import (
+    BackgroundTasks,
+    FastAPI,
+    File,
+    Header,
+    HTTPException,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from .auth import configured as auth_configured
+from .auth import current_email
 from .chat import answer as chat_answer
 from .clauses import split_clauses
 from .config import settings
@@ -22,9 +31,9 @@ MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 # shape instead. Credentials are never sent, so this exposes nothing.
 CORS_ORIGIN_REGEX = r"https://([a-z0-9-]+\.)*(zenvx\.in|pages\.dev|workers\.dev)"
 
-FEATURES = ["upload", "rules", "explain", "chat", "email"]
+FEATURES = ["upload", "rules", "explain", "chat", "email", "auth"]
 
-app = FastAPI(title="Litigate API", version="0.6.0")
+app = FastAPI(title="Litigate API", version="0.7.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,6 +60,27 @@ class NotifyRequest(BaseModel):
     filename: str = "contract"
     summary: dict = Field(default_factory=dict)
     findings: list[dict] = Field(default_factory=list)
+
+
+async def resolve_recipients(
+    authorization: str | None,
+    requested: list[str] | None = None,
+) -> list[str]:
+    """Decide who receives an alert.
+
+    A verified account always wins. The address in the request body is only
+    honoured when auth is switched off entirely, which is the local
+    development case. Otherwise this endpoint could be used to send mail to
+    strangers.
+    """
+    signed_in = await current_email(authorization)
+    if signed_in:
+        return [signed_in]
+
+    if not auth_configured() and requested:
+        return [item.strip() for item in requested if item.strip()]
+
+    return list(settings.alert_to)
 
 
 @app.get("/")
@@ -81,6 +111,7 @@ def health() -> dict:
             "auto": settings.auto_alert,
             "recipients": len(settings.alert_to),
         },
+        "auth": {"configured": auth_configured()},
         "corsOrigins": settings.cors_origins,
         "corsOriginRegex": CORS_ORIGIN_REGEX,
     }
@@ -125,6 +156,7 @@ async def llm_ping() -> dict:
 async def upload_contract(
     background: BackgroundTasks,
     file: UploadFile = File(...),
+    authorization: str | None = Header(default=None),
 ) -> dict:
     data = await file.read()
     if not data:
@@ -141,22 +173,23 @@ async def upload_contract(
     findings, summary, types = evaluate(text, clauses)
     payload = [asdict(finding) for finding in findings]
 
-    # A high-risk contract notifies its owners without anyone asking. The send
+    # A high risk contract notifies its owner without anyone asking. The send
     # is queued after the response so a mail outage cannot delay or fail the
     # analysis the user is waiting for.
     if (
         settings.auto_alert
-        and settings.alert_to
         and mail_configured()
         and summary.get("riskBand") == "high"
     ):
-        background.add_task(
-            send_quietly,
-            list(settings.alert_to),
-            file.filename or "contract",
-            summary,
-            payload,
-        )
+        recipients = await resolve_recipients(authorization)
+        if recipients:
+            background.add_task(
+                send_quietly,
+                recipients,
+                file.filename or "contract",
+                summary,
+                payload,
+            )
 
     return {
         "filename": file.filename,
@@ -206,18 +239,15 @@ async def chat(payload: ChatRequest) -> dict:
 
 
 @app.post("/api/notify")
-async def notify(payload: NotifyRequest) -> dict:
-    """Email a risk report on demand.
-
-    Falls back to the configured owners when the caller names no recipient,
-    so the browser never has to know who the escalation contacts are.
-    """
-    recipients = [item.strip() for item in payload.to if item.strip()]
-    if not recipients:
-        recipients = list(settings.alert_to)
+async def notify(
+    payload: NotifyRequest,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Email a risk report to the signed in account."""
+    recipients = await resolve_recipients(authorization, payload.to)
 
     if not recipients:
-        raise HTTPException(status_code=400, detail="no recipient was supplied")
+        raise HTTPException(status_code=401, detail="sign in to receive alerts")
     if not payload.summary:
         raise HTTPException(status_code=400, detail="analyse a contract first")
 

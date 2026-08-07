@@ -43,13 +43,19 @@ class Settings:
     alert_from: str = os.getenv("ALERT_FROM", DEFAULT_ALERT_FROM)
     auto_alert: bool = os.getenv("AUTO_ALERT", "true").lower() == "true"
 
+    # The anon key is a public value by design. It identifies the project to
+    # the auth API and grants nothing on its own.
+    supabase_url: str = os.getenv("SUPABASE_URL", "")
+    supabase_anon_key: str = os.getenv("SUPABASE_ANON_KEY", "")
+
     groq_fallbacks: list[str] = field(
         default_factory=lambda: _split(
             os.getenv("GROQ_MODEL_FALLBACKS", DEFAULT_GROQ_FALLBACKS)
         )
     )
 
-    # Owners who receive an automatic alert when a contract lands as high risk.
+    # Fallback owners, used when no one is signed in. Signed in users always
+    # receive alerts at their own verified address instead.
     alert_to: list[str] = field(
         default_factory=lambda: _split(os.getenv("ALERT_TO", ""))
     )
