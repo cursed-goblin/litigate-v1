@@ -5,7 +5,8 @@ USER user
 
 ENV PATH="/home/user/.local/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=7860
 
 WORKDIR /app
 
@@ -16,4 +17,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY --chown=user:user . .
 
 EXPOSE 7860
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
