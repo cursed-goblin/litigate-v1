@@ -184,7 +184,7 @@ export default function Page() {
     setBriefing({})
     setBriefingError(null)
 
-    let parsed: ParsedContract
+    let parsed: ParsedContract | null = null
     try {
       parsed = await uploadContract(file)
       setContract(parsed)
@@ -193,14 +193,13 @@ export default function Page() {
       setContract(null)
       setSelected(null)
       setUploadError(cause instanceof Error ? cause.message : "upload failed")
-      return
     } finally {
       setBusy(false)
     }
 
     // Second pass. The findings are already rendered, so this only ever
     // adds prose on top of evidence the rule engine has already proven.
-    const list = parsed.findings ?? []
+    const list = parsed?.findings ?? []
     if (!list.length) {
       return
     }

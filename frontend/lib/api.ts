@@ -1,5 +1,8 @@
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7860"
+const RAW_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7860"
+
+// A trailing slash on the env var produces a double slash in every request
+// path, which the API answers with a bare 404. Strip it once, here.
+export const API_BASE = RAW_BASE.trim().replace(/\/+$/, "")
 
 export type Severity = "high" | "medium" | "low"
 
@@ -77,10 +80,14 @@ export type ExplainResult = {
   returned: number
 }
 
+function endpoint(path: string) {
+  return API_BASE + (path.startsWith("/") ? path : "/" + path)
+}
+
 async function request<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, { cache: "no-store" })
+  const response = await fetch(endpoint(path), { cache: "no-store" })
   if (!response.ok) {
-    throw new Error(`${path} responded ${response.status}`)
+    throw new Error(path + " responded " + response.status)
   }
   return response.json() as Promise<T>
 }
@@ -105,14 +112,14 @@ export async function uploadContract(file: File): Promise<ParsedContract> {
   const body = new FormData()
   body.append("file", file)
 
-  const response = await fetch(`${API_BASE}/api/contracts/upload`, {
+  const response = await fetch(endpoint("/api/contracts/upload"), {
     method: "POST",
     body,
   })
 
   if (!response.ok) {
     throw new Error(
-      await detailOf(response, `upload failed with status ${response.status}`),
+      await detailOf(response, "upload failed with status " + response.status),
     )
   }
 
@@ -127,7 +134,7 @@ export async function uploadContract(file: File): Promise<ParsedContract> {
 export async function explainFindings(
   findings: Finding[],
 ): Promise<ExplainResult> {
-  const response = await fetch(`${API_BASE}/api/contracts/explain`, {
+  const response = await fetch(endpoint("/api/contracts/explain"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ findings }),
@@ -135,7 +142,7 @@ export async function explainFindings(
 
   if (!response.ok) {
     throw new Error(
-      await detailOf(response, `briefing failed with status ${response.status}`),
+      await detailOf(response, "briefing failed with status " + response.status),
     )
   }
 
