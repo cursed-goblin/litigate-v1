@@ -20,6 +20,7 @@ export type Health = {
   }
   cache: boolean
   playbook?: string
+  features?: string[]
 }
 
 export type Clause = {
@@ -84,6 +85,29 @@ export type ExplainResult = {
   returned: number
 }
 
+export type ChatAnswer = {
+  answer: string
+  clauses: string[]
+  grounded: boolean
+}
+
+export type PlaybookRule = {
+  id: string
+  clauseType: string
+  severity: Severity
+  title: string
+  policy: string
+}
+
+export type PlaybookInfo = {
+  name: string
+  version: string
+  owner: string
+  ruleCount: number
+  requiredClauseCount: number
+  rules: PlaybookRule[]
+}
+
 function endpoint(path: string) {
   return API_BASE + (path.startsWith("/") ? path : "/" + path)
 }
@@ -108,8 +132,28 @@ async function detailOf(response: Response, fallback: string) {
   return fallback
 }
 
+async function postJson<T>(path: string, body: unknown, label: string): Promise<T> {
+  const response = await fetch(endpoint(path), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      await detailOf(response, label + " failed with status " + response.status),
+    )
+  }
+
+  return response.json() as Promise<T>
+}
+
 export function getHealth(): Promise<Health> {
   return request<Health>("/api/health")
+}
+
+export function getPlaybook(): Promise<PlaybookInfo> {
+  return request<PlaybookInfo>("/api/playbook")
 }
 
 export async function uploadContract(file: File): Promise<ParsedContract> {
@@ -135,20 +179,26 @@ export async function uploadContract(file: File): Promise<ParsedContract> {
  * Deliberately a second request: the findings are already on screen by the
  * time this runs, so a model outage costs prose and nothing else.
  */
-export async function explainFindings(
+export function explainFindings(findings: Finding[]): Promise<ExplainResult> {
+  return postJson<ExplainResult>(
+    "/api/contracts/explain",
+    { findings },
+    "briefing",
+  )
+}
+
+/**
+ * Question answering restricted to the clauses supplied here. The backend is
+ * given no other source, so an answer can always be traced to visible text.
+ */
+export function askQuestion(
+  question: string,
+  clauses: Clause[],
   findings: Finding[],
-): Promise<ExplainResult> {
-  const response = await fetch(endpoint("/api/contracts/explain"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ findings }),
-  })
-
-  if (!response.ok) {
-    throw new Error(
-      await detailOf(response, "briefing failed with status " + response.status),
-    )
-  }
-
-  return response.json() as Promise<ExplainResult>
+): Promise<ChatAnswer> {
+  return postJson<ChatAnswer>(
+    "/api/chat",
+    { question, clauses, findings },
+    "assistant",
+  )
 }
