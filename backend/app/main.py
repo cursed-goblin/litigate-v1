@@ -4,6 +4,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from .chat import answer as chat_answer
 from .clauses import split_clauses
 from .config import settings
 from .explain import explain
@@ -18,7 +19,9 @@ MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 # shape instead. Credentials are never sent, so this exposes nothing.
 CORS_ORIGIN_REGEX = r"https://([a-z0-9-]+\.)*(zenvx\.in|pages\.dev|workers\.dev)"
 
-app = FastAPI(title="Litigate API", version="0.4.1")
+FEATURES = ["upload", "rules", "explain", "chat"]
+
+app = FastAPI(title="Litigate API", version="0.5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,6 +34,12 @@ app.add_middleware(
 
 
 class ExplainRequest(BaseModel):
+    findings: list[dict] = Field(default_factory=list)
+
+
+class ChatRequest(BaseModel):
+    question: str = ""
+    clauses: list[dict] = Field(default_factory=list)
     findings: list[dict] = Field(default_factory=list)
 
 
@@ -56,6 +65,7 @@ def health() -> dict:
         },
         "cache": settings.use_cache,
         "playbook": playbook_name(),
+        "features": FEATURES,
         "corsOrigins": settings.cors_origins,
         "corsOriginRegex": CORS_ORIGIN_REGEX,
     }
@@ -145,3 +155,15 @@ async def explain_contract(payload: ExplainRequest) -> dict:
         "requested": len(payload.findings),
         "returned": len(explanations),
     }
+
+
+@app.post("/api/chat")
+async def chat(payload: ChatRequest) -> dict:
+    """Answer a question using only the clauses supplied by the caller."""
+    if not payload.question.strip():
+        raise HTTPException(status_code=400, detail="ask a question first")
+
+    try:
+        return await chat_answer(payload.question, payload.clauses, payload.findings)
+    except LLMError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
