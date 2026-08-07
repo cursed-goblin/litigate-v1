@@ -1,21 +1,53 @@
-# Litigate — LegalLens AI
+# Litigate
 
-AI copilot for contract risk and policy governance.
+Contract risk and policy governance platform.
 
-Live: https://litigate.zenvx.in
+## Stack
 
-## Structure
+- **Backend** — FastAPI (Python 3.11), Docker
+- **Frontend** — Next.js 14, TypeScript, Tailwind CSS
+
+## Layout
 
 ```
-backend/    FastAPI service (deploys to Hugging Face Spaces, Docker)
-frontend/   Next.js static export (deploys to Cloudflare Pages)
-docs/       Deployment and build notes
+backend/    API service
+frontend/   Web client
 ```
 
-## Quick start
+## Running locally
 
-See `docs/DEPLOY.md`.
+Backend:
 
-## Status
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 7860
+```
 
-Phase 0 — deploy skeleton. See `docs/BUILD_ORDER.md`.
+Frontend:
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+## Environment
+
+Configuration is read from environment variables. See `backend/.env.example`
+and `frontend/.env.example`. Secrets are not committed — set them in the
+deployment platform's secret store.
+
+## Build
+
+The frontend produces a static export:
+
+```bash
+cd frontend
+npm run build
+```
+
+Output is written to `frontend/out`.
