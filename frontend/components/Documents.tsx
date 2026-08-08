@@ -241,7 +241,7 @@ export default function Documents({
               <p className="mt-1 text-[12px] text-ink-4">
                 {inGroup.length +
                   " clauses" +
-                  (flagged.length ? " \\u00b7 " + flagged.length + " flagged" : "")}
+                  (flagged.length ? " \u00b7 " + flagged.length + " flagged" : "")}
               </p>
             </div>
           )
@@ -289,7 +289,7 @@ export default function Documents({
                     </span>
                     <span className="block text-[12px] text-ink-4">
                       {doc.clauseCount +
-                        " clauses \\u00b7 " +
+                        " clauses \u00b7 " +
                         doc.findingCount +
                         " findings"}
                     </span>
