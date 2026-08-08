@@ -19,10 +19,14 @@ import { explainFindings, getHealth, uploadContract } from "@/lib/api"
 import type { Explanation, Health, ParsedContract } from "@/lib/api"
 import { authConfigured, supabase } from "@/lib/supabase"
 import {
+  canIndex,
   connectDrive,
+  downloadById,
   downloadFile,
   driveConfigured,
+  driveIdsFrom,
   driveToken,
+  looksLikeIndex,
   pickFiles,
 } from "@/lib/drive"
 import type { DocumentRecord } from "@/lib/session"
@@ -320,6 +324,8 @@ export default function Page() {
     }
 
     setDriveBusy(true)
+    const failed: string[] = []
+
     try {
       const picked = await pickFiles(token)
 
@@ -328,10 +334,45 @@ export default function Page() {
       // most of them.
       for (let index = 0; index < picked.length; index += 1) {
         const file = picked[index]
+        setDriveStatus("Opening " + file.name)
+        const local = await downloadFile(file, token)
+
+        // One file listing view links is treated as the library it points at.
+        // This is how policy owners actually work: the documents are Google
+        // Docs and a single index lists every link.
+        if (canIndex(file.mimeType)) {
+          const text = await local.text()
+          const ids = driveIdsFrom(text).filter((id) => id !== file.id)
+
+          if (looksLikeIndex(text, ids)) {
+            for (let link = 0; link < ids.length; link += 1) {
+              setDriveStatus(
+                "Importing " +
+                  (link + 1) +
+                  " of " +
+                  ids.length +
+                  " listed in " +
+                  file.name,
+              )
+              try {
+                const linked = await downloadById(ids[link], token)
+                await ingest(linked)
+              } catch (cause) {
+                // One unshared link must not abandon the rest of the list.
+                failed.push(
+                  cause instanceof Error
+                    ? cause.message
+                    : "a linked document could not be opened",
+                )
+              }
+            }
+            continue
+          }
+        }
+
         setDriveStatus(
           "Importing " + (index + 1) + " of " + picked.length + ": " + file.name,
         )
-        const local = await downloadFile(file, token)
         await ingest(local)
       }
     } catch (cause) {
@@ -341,6 +382,14 @@ export default function Page() {
     } finally {
       setDriveStatus(null)
       setDriveBusy(false)
+    }
+
+    if (failed.length) {
+      setDriveError(
+        failed.length === 1
+          ? failed[0]
+          : failed.length + " linked documents could not be opened. " + failed[0],
+      )
     }
   }, [ingest])
 

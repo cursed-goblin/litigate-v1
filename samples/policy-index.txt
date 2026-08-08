@@ -1,0 +1,25 @@
+MERIDIAN SYSTEMS - CONTRACT AND POLICY INDEX
+
+Paste the view link of each Google Doc below, one per line. Anything that is
+not a Drive link is ignored, so labels and notes are safe to keep.
+
+Master services agreement - Vertexgrid
+https://drive.google.com/file/d/REPLACE_WITH_YOUR_FILE_ID/view?usp=sharing
+
+SaaS subscription - Brightledger
+https://drive.google.com/file/d/REPLACE_WITH_YOUR_FILE_ID/view?usp=sharing
+
+Reseller agreement - Orionpath
+https://docs.google.com/document/d/REPLACE_WITH_YOUR_FILE_ID/edit
+
+Data processing addendum - Cloudspan
+https://docs.google.com/document/d/REPLACE_WITH_YOUR_FILE_ID/edit
+
+Statement of work - Halcyon
+https://docs.google.com/document/d/REPLACE_WITH_YOUR_FILE_ID/edit
+
+Mutual NDA - Northwind
+https://docs.google.com/document/d/REPLACE_WITH_YOUR_FILE_ID/edit
+
+Each listed file must be shared as Anyone with the link, Viewer. The index
+itself is the only file you select in the app.
