@@ -3,6 +3,7 @@
 import { useState } from "react"
 
 import type { Explanation, Finding, Summary } from "@/lib/api"
+import type { Category } from "@/lib/categories"
 import { RISK_CHIP, titleCase } from "@/lib/format"
 import { ShieldIcon } from "./Icons"
 
@@ -14,24 +15,35 @@ export default function RiskRegister({
   findings,
   briefing,
   summary,
+  category,
+  onClearCategory,
   onOpenClause,
 }: {
   findings: Finding[]
   briefing: Record<string, Explanation>
   summary?: Summary
+  category?: Category | null
+  onClearCategory?: () => void
   onOpenClause: (clauseId: string) => void
 }) {
   const [filter, setFilter] = useState<Filter>("all")
 
+  // A folder opened from Documents narrows the register to that group's clause
+  // types. The severity buttons then count within the narrowed set, so the
+  // numbers on screen always add up to what is listed below them.
+  const base = category
+    ? findings.filter((finding) => category.types.includes(finding.clauseType))
+    : findings
+
   const rows =
     filter === "all"
-      ? findings
-      : findings.filter((finding) => finding.severity === filter)
+      ? base
+      : base.filter((finding) => finding.severity === filter)
 
   const countFor = (value: Filter) =>
     value === "all"
-      ? findings.length
-      : findings.filter((finding) => finding.severity === value).length
+      ? base.length
+      : base.filter((finding) => finding.severity === value).length
 
   return (
     <div className="h-full overflow-y-auto px-8 py-7">
@@ -42,7 +54,21 @@ export default function RiskRegister({
         it was measured from.
       </p>
 
-      <div className="mt-5 flex items-center gap-2">
+      {category ? (
+        <div className="mt-4 flex items-center gap-2">
+          <span className="text-[12px] text-ink-4">Filtered to</span>
+          <button
+            type="button"
+            onClick={onClearCategory}
+            className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[12px] font-medium text-ink-2 transition-colors hover:bg-canvas"
+          >
+            {category.label}
+            <span className="text-ink-4">{"\u00d7"}</span>
+          </button>
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex items-center gap-2">
         {FILTERS.map((value) => (
           <button
             key={value}
@@ -133,7 +159,11 @@ export default function RiskRegister({
             <p className="text-[14px] font-medium text-ink-2">Nothing to show</p>
             <p className="mt-1.5 text-[13px] text-ink-3">
               {findings.length
-                ? "No findings at this severity."
+                ? category
+                  ? "No findings in " +
+                    category.label +
+                    " at this severity. Clear the filter to see the rest."
+                  : "No findings at this severity."
                 : "Upload a contract to populate the register."}
             </p>
           </div>

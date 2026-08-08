@@ -21,6 +21,7 @@ export type View =
   | "risk"
   | "assistant"
   | "playbook"
+  | "notifications"
   | "settings"
 
 type Item = {
@@ -44,6 +45,12 @@ const GOVERNANCE: Item[] = [
   { id: "playbook", label: "Playbook", icon: BookIcon },
 ]
 
+const NOTIFICATIONS: Item = {
+  id: "notifications",
+  label: "Notifications",
+  icon: BellIcon,
+}
+
 // Settings owns the account controls, including sign out, so the footer keeps
 // one route into them rather than two.
 const SYSTEM: Item[] = [{ id: "settings", label: "Settings", icon: GearIcon }]
@@ -61,7 +68,9 @@ export default function Sidebar({
   alerts: number
   email: string
 }) {
-  const renderItem = (item: Item) => {
+  // The badge is passed explicitly rather than read from a map, so the array
+  // maps below must not hand their index in as a second argument.
+  const renderItem = (item: Item, badge?: number) => {
     const Icon = item.icon
     const active = view === item.id
     return (
@@ -78,6 +87,16 @@ export default function Sidebar({
       >
         <Icon className="h-[18px] w-[18px] shrink-0" />
         <span className="truncate">{item.label}</span>
+        {badge ? (
+          <span
+            className={
+              "ml-auto rounded-full px-2 py-[1px] text-[11px] font-medium " +
+              (active ? "bg-surface text-risk-high" : "bg-risk-high-soft text-risk-high")
+            }
+          >
+            {badge}
+          </span>
+        ) : null}
       </button>
     )
   }
@@ -106,30 +125,29 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
-        <div className="space-y-1">{PRIMARY.map(renderItem)}</div>
+        <div className="space-y-1">
+          {PRIMARY.map((item) => renderItem(item))}
+        </div>
 
         <p className="px-3 pb-2 pt-5 text-[10px] font-semibold tracking-[0.08em] text-ink-4">
           ANALYSIS
         </p>
-        <div className="space-y-1">{ANALYSIS.map(renderItem)}</div>
+        <div className="space-y-1">
+          {ANALYSIS.map((item) => renderItem(item))}
+        </div>
 
         <p className="px-3 pb-2 pt-5 text-[10px] font-semibold tracking-[0.08em] text-ink-4">
           GOVERNANCE
         </p>
-        <div className="space-y-1">{GOVERNANCE.map(renderItem)}</div>
+        <div className="space-y-1">
+          {GOVERNANCE.map((item) => renderItem(item))}
+        </div>
       </nav>
 
       <div className="border-t border-line px-3 py-3">
-        <div className="space-y-1">{SYSTEM.map(renderItem)}</div>
-
-        <div className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-ink-2">
-          <BellIcon className="h-[18px] w-[18px]" />
-          Notifications
-          {alerts > 0 ? (
-            <span className="ml-auto rounded-full bg-risk-high-soft px-2 py-[1px] text-[11px] font-medium text-risk-high">
-              {alerts}
-            </span>
-          ) : null}
+        <div className="space-y-1">
+          {SYSTEM.map((item) => renderItem(item))}
+          {renderItem(NOTIFICATIONS, alerts)}
         </div>
 
         <ThemeToggle />
