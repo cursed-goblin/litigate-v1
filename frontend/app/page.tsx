@@ -6,6 +6,7 @@ import type { Session } from "@supabase/supabase-js"
 
 import Analysis from "@/components/Analysis"
 import Assistant from "@/components/Assistant"
+import ChatLauncher from "@/components/ChatLauncher"
 import Dashboard from "@/components/Dashboard"
 import Documents from "@/components/Documents"
 import Login from "@/components/Login"
@@ -486,6 +487,11 @@ export default function Page() {
           />
         ) : null}
       </main>
+
+      <ChatLauncher
+        hidden={view === "assistant"}
+        onOpen={() => setView("assistant")}
+      />
     </div>
   )
 }
