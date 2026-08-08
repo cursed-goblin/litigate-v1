@@ -3,6 +3,10 @@
 import type { Health } from "@/lib/api"
 import { FolderIcon, ShieldIcon } from "./Icons"
 
+// Bumped by hand whenever the frontend is deployed. A stale build is otherwise
+// indistinguishable from a broken feature, which costs far more time to chase.
+const BUILD = "2026-08-08 06:45 IST"
+
 function Row({
   label,
   value,
@@ -106,7 +110,8 @@ export default function Settings({
           value={online ? "Online" : "Offline"}
           tone={online ? "text-accent" : "text-risk-high"}
         />
-        <Row label="Version" value={health?.version || "unknown"} />
+        <Row label="Backend version" value={health?.version || "unknown"} />
+        <Row label="Frontend build" value={BUILD} />
         <Row label="Model provider" value={health?.provider || "unknown"} />
         <Row label="Playbook" value={health?.playbook || "not loaded"} />
         <Row

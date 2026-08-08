@@ -1,0 +1,6 @@
+litigate frontend
+build 2026-08-08 06:45 IST
+includes: drive-import settings-view chat-launcher simple-briefings
+
+If https://litigate.zenvx.in/build.txt does not show the line above,
+the deployment serving that domain is older than this commit.
