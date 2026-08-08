@@ -18,6 +18,7 @@ from .clauses import split_clauses
 from .config import settings
 from .explain import explain
 from .extract import ExtractionError, extract_text
+from .gate import screen, screen_model
 from .llm import LLMError, complete_json
 from .mailer import MailError
 from .mailer import configured as mail_configured
@@ -31,9 +32,18 @@ MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 # shape instead. Credentials are never sent, so this exposes nothing.
 CORS_ORIGIN_REGEX = r"https://([a-z0-9-]+\.)*(zenvx\.in|pages\.dev|workers\.dev)"
 
-FEATURES = ["upload", "rules", "explain", "chat", "email", "auth", "scoring"]
+FEATURES = [
+    "upload",
+    "screening",
+    "rules",
+    "explain",
+    "chat",
+    "email",
+    "auth",
+    "scoring",
+]
 
-app = FastAPI(title="Litigate API", version="0.9.0")
+app = FastAPI(title="Litigate API", version="0.10.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -119,6 +129,7 @@ def health() -> dict:
         },
         "auth": {"configured": auth_configured()},
         "scoring": score_model(),
+        "screening": screen_model(),
         "corsOrigins": settings.cors_origins,
         "corsOriginRegex": CORS_ORIGIN_REGEX,
     }
@@ -177,6 +188,13 @@ async def upload_contract(
     except ExtractionError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+    # Screen before anything else runs. The rule engine will score whatever it
+    # is given, so a document that is not a contract has to be turned away
+    # here rather than reported on with a number beside it.
+    verdict = screen(text)
+    if not verdict.accepted:
+        raise HTTPException(status_code=422, detail=verdict.reason)
+
     clauses = split_clauses(text)
     findings, summary, types = evaluate(text, clauses)
     payload = [asdict(finding) for finding in findings]
@@ -209,6 +227,7 @@ async def upload_contract(
         ],
         "findings": payload,
         "summary": summary,
+        "screening": verdict.summary(),
     }
 
 
