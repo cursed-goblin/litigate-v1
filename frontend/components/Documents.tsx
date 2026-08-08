@@ -4,47 +4,15 @@ import { useState } from "react"
 import type { DragEvent } from "react"
 
 import type { ParsedContract } from "@/lib/api"
+import type { Category } from "@/lib/categories"
+import { CATEGORIES } from "@/lib/categories"
 import type { DocumentRecord } from "@/lib/session"
-import { RISK_CHIP, fileSize, whenLabel } from "@/lib/format"
+import { RISK_CHIP, fileSize, titleCase, whenLabel } from "@/lib/format"
 import { DotsIcon, FileIcon, FolderIcon, SearchIcon, UploadIcon } from "./Icons"
 
-const GROUPS: Array<{
-  label: string
-  types: string[]
-  fill: string
-  tint: string
-}> = [
-  {
-    label: "Commercial Terms",
-    types: ["payment_terms", "renewal", "termination"],
-    fill: "text-folder-amber",
-    tint: "bg-folder-amber-soft",
-  },
-  {
-    label: "Liability & Indemnity",
-    types: ["limitation_of_liability", "indemnity", "warranty"],
-    fill: "text-folder-blue",
-    tint: "bg-folder-blue-soft",
-  },
-  {
-    label: "Data & Confidentiality",
-    types: ["data_protection", "confidentiality", "intellectual_property"],
-    fill: "text-folder-green",
-    tint: "bg-folder-green-soft",
-  },
-  {
-    label: "Governance",
-    types: [
-      "governing_law",
-      "dispute_resolution",
-      "force_majeure",
-      "audit_rights",
-      "assignment",
-    ],
-    fill: "text-folder-violet",
-    tint: "bg-folder-violet-soft",
-  },
-]
+const BANDS = ["all", "high", "medium", "low"] as const
+
+type Band = (typeof BANDS)[number]
 
 function TrashMark({ className }: { className?: string }) {
   return (
@@ -83,6 +51,7 @@ export default function Documents({
   onDrop,
   onOpen,
   onDelete,
+  onOpenCategory,
   onDriveImport,
   onDriveConnect,
 }: {
@@ -101,10 +70,13 @@ export default function Documents({
   onDrop: (event: DragEvent<HTMLElement>) => void
   onOpen: (doc: DocumentRecord) => void
   onDelete: (doc: DocumentRecord) => void
+  onOpenCategory: (category: Category) => void
   onDriveImport: () => void
   onDriveConnect: () => void
 }) {
   const [query, setQuery] = useState("")
+  const [band, setBand] = useState<Band>("all")
+  const [bandOpen, setBandOpen] = useState(false)
 
   // The clause breakdown describes the document that is currently open, so it
   // stays empty until one is selected rather than showing another file's shape.
@@ -112,9 +84,16 @@ export default function Documents({
   const findings = contract?.findings ?? []
 
   const term = query.trim().toLowerCase()
-  const visible = term
-    ? documents.filter((doc) => doc.name.toLowerCase().includes(term))
-    : documents
+  const visible = documents.filter((doc) => {
+    const matchesName = term ? doc.name.toLowerCase().includes(term) : true
+    const matchesBand = band === "all" ? true : doc.riskBand === band
+    return matchesName && matchesBand
+  })
+
+  const countInBand = (value: Band) =>
+    value === "all"
+      ? documents.length
+      : documents.filter((doc) => doc.riskBand === value).length
 
   return (
     <div
@@ -163,15 +142,43 @@ export default function Documents({
             className="w-full bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-4"
           />
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] text-ink-2"
-        >
-          Filter by
-          <span className="text-ink-4">
-            <DotsIcon className="h-4 w-4" />
-          </span>
-        </button>
+
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setBandOpen((open) => !open)}
+            className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] text-ink-2 transition-colors hover:bg-canvas"
+          >
+            {band === "all" ? "Filter by" : titleCase(band) + " risk"}
+            <span className="text-ink-4">
+              <DotsIcon className="h-4 w-4" />
+            </span>
+          </button>
+
+          {bandOpen ? (
+            <div className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-lg border border-line bg-surface py-1 shadow-pop">
+              {BANDS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setBand(value)
+                    setBandOpen(false)
+                  }}
+                  className={
+                    "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[13px] transition-colors hover:bg-canvas " +
+                    (band === value ? "font-medium text-ink" : "text-ink-2")
+                  }
+                >
+                  {value === "all" ? "All documents" : titleCase(value) + " risk"}
+                  <span className="text-[12px] text-ink-4">
+                    {countInBand(value)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {uploadError ? (
@@ -208,11 +215,12 @@ export default function Documents({
       <h2 className="mt-7 text-[15px] font-semibold">Clause categories</h2>
       <p className="mt-1 text-[12px] text-ink-4">
         {contract
-          ? contract.filename
+          ? contract.filename +
+            " \u00b7 select a category to open its findings in the Risk Register"
           : "Open a document to see how its clauses break down."}
       </p>
       <div className="mt-3 grid grid-cols-4 gap-4">
-        {GROUPS.map((group) => {
+        {CATEGORIES.map((group) => {
           const inGroup = clauses.filter((clause) =>
             group.types.includes(clause.type ?? "other"),
           )
@@ -220,9 +228,15 @@ export default function Documents({
             group.types.includes(finding.clauseType),
           )
           return (
-            <div
+            <button
               key={group.label}
-              className="rounded-xl border border-line bg-surface p-4 shadow-card"
+              type="button"
+              disabled={!contract}
+              onClick={() => onOpenCategory(group)}
+              className={
+                "rounded-xl border border-line bg-surface p-4 text-left shadow-card transition-colors " +
+                (contract ? "hover:bg-canvas" : "cursor-not-allowed opacity-60")
+              }
             >
               <div className="flex items-start justify-between">
                 <span
@@ -235,15 +249,21 @@ export default function Documents({
                 >
                   <FolderIcon className="h-[18px] w-[18px]" />
                 </span>
-                <DotsIcon className="h-4 w-4 text-ink-4" />
+                {flagged.length ? (
+                  <span className="rounded-md bg-risk-high-soft px-2 py-[3px] text-[11px] font-medium text-risk-high">
+                    {flagged.length + " flagged"}
+                  </span>
+                ) : (
+                  <DotsIcon className="h-4 w-4 text-ink-4" />
+                )}
               </div>
               <p className="mt-3 text-[13px] font-medium">{group.label}</p>
               <p className="mt-1 text-[12px] text-ink-4">
-                {inGroup.length +
-                  " clauses" +
-                  (flagged.length ? " \u00b7 " + flagged.length + " flagged" : "")}
+                {contract
+                  ? inGroup.length + " clauses in this contract"
+                  : "No document open"}
               </p>
-            </div>
+            </button>
           )
         })}
       </div>
@@ -350,14 +370,14 @@ export default function Documents({
               {busy
                 ? "Analysing document..."
                 : documents.length
-                  ? "No documents match that search"
+                  ? "No documents match those filters"
                   : "No documents yet"}
             </p>
             <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-6 text-ink-3">
               {busy
                 ? "The first request can take up to a minute if the API was idle."
                 : documents.length
-                  ? "Clear the search box to see everything saved to your account."
+                  ? "Clear the search box and the risk filter to see everything saved to your account."
                   : "Drop a contract anywhere on this page, or import from Drive. The file needs selectable text, so scans will not work."}
             </p>
           </div>

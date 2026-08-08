@@ -10,6 +10,7 @@ import ChatLauncher from "@/components/ChatLauncher"
 import Dashboard from "@/components/Dashboard"
 import Documents from "@/components/Documents"
 import Login from "@/components/Login"
+import Notifications from "@/components/Notifications"
 import Playbook from "@/components/Playbook"
 import RiskRegister from "@/components/RiskRegister"
 import Settings from "@/components/Settings"
@@ -17,6 +18,9 @@ import Sidebar from "@/components/Sidebar"
 import type { View } from "@/components/Sidebar"
 import { explainFindings, getHealth, uploadContract } from "@/lib/api"
 import type { Explanation, Health, ParsedContract } from "@/lib/api"
+import { buildAlerts } from "@/lib/alerts"
+import type { Alert } from "@/lib/alerts"
+import type { Category } from "@/lib/categories"
 import { authConfigured, supabase } from "@/lib/supabase"
 import {
   canIndex,
@@ -47,6 +51,10 @@ const ACCEPT = ".pdf,.docx,.txt,.md"
 // would be a worse failure than losing its history.
 const LOCAL_PREFIX = "local-"
 
+// Read state is per browser rather than per account. It is a display
+// preference, not a record, so it does not justify a table or a round trip.
+const READ_KEY = "litigate-read-alerts"
+
 export default function Page() {
   const [view, setView] = useState<View>("dashboard")
   const [health, setHealth] = useState<Health | null>(null)
@@ -55,6 +63,8 @@ export default function Page() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
+  const [category, setCategory] = useState<Category | null>(null)
+  const [read, setRead] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [storeError, setStoreError] = useState<string | null>(null)
@@ -89,6 +99,21 @@ export default function Page() {
     })
 
     return () => data.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(READ_KEY)
+      if (!raw) {
+        return
+      }
+      const parsed: unknown = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        setRead(parsed.filter((item): item is string => typeof item === "string"))
+      }
+    } catch {
+      // Storage can be blocked. Everything simply reads as unread.
+    }
   }, [])
 
   const signedIn = !authConfigured || Boolean(session)
@@ -142,6 +167,7 @@ export default function Page() {
       setBriefing({})
       setBriefingError(null)
       setSelected(null)
+      setCategory(null)
 
       let parsed: ParsedContract | null = null
       let savedId: string | null = null
@@ -246,6 +272,7 @@ export default function Page() {
         setBriefing(stored.briefing)
         setBriefingError(null)
         setSelected(null)
+        setCategory(null)
         setActiveId(doc.id)
         setView("review")
       } catch (cause) {
@@ -415,6 +442,7 @@ export default function Page() {
     setBriefing({})
     setStoreError(null)
     setDriveError(null)
+    setCategory(null)
     setView("dashboard")
   }, [])
 
@@ -425,9 +453,81 @@ export default function Page() {
     )
   }, [contract])
 
+  const alerts = useMemo(
+    () => buildAlerts(documents, contract, activeId),
+    [documents, contract, activeId],
+  )
+
+  const unread = useMemo(
+    () => alerts.filter((alert) => !read.includes(alert.id)).length,
+    [alerts, read],
+  )
+
+  const markRead = useCallback((ids: string[]) => {
+    setRead((prev) => {
+      const next = prev.slice()
+      ids.forEach((id) => {
+        if (!next.includes(id)) {
+          next.push(id)
+        }
+      })
+      try {
+        window.localStorage.setItem(READ_KEY, JSON.stringify(next))
+      } catch {
+        // Nothing to do. The badge will reappear on the next visit.
+      }
+      return next
+    })
+  }, [])
+
+  const markAllRead = useCallback(() => {
+    markRead(alerts.map((alert) => alert.id))
+  }, [alerts, markRead])
+
+  // A notification is only useful if it lands you on the thing it describes,
+  // so each one resolves to the clause it was measured from where there is
+  // one, and to the document otherwise.
+  const openAlert = useCallback(
+    (alert: Alert) => {
+      markRead([alert.id])
+
+      if (alert.clauseId) {
+        setSelected(alert.clauseId)
+        setView("review")
+        return
+      }
+
+      if (alert.documentId) {
+        const doc = documents.find((item) => item.id === alert.documentId)
+        if (doc) {
+          void openDocument(doc)
+          return
+        }
+      }
+
+      setCategory(null)
+      setView("risk")
+    },
+    [documents, markRead, openDocument],
+  )
+
   const openClause = useCallback((clauseId: string) => {
     setSelected(clauseId)
     setView("review")
+  }, [])
+
+  const openCategory = useCallback((next: Category) => {
+    setCategory(next)
+    setView("risk")
+  }, [])
+
+  // Reaching the register from the sidebar means the whole register, so a
+  // filter left behind by a folder is dropped on the way in.
+  const selectView = useCallback((next: View) => {
+    if (next === "risk") {
+      setCategory(null)
+    }
+    setView(next)
   }, [])
 
   if (!authReady) {
@@ -456,9 +556,9 @@ export default function Page() {
 
       <Sidebar
         view={view}
-        onSelect={setView}
+        onSelect={selectView}
         online={health?.status === "ok"}
-        alerts={contract?.summary?.high ?? 0}
+        alerts={unread}
         email={email}
       />
 
@@ -470,7 +570,7 @@ export default function Page() {
             findings={findings}
             documents={documents}
             email={email}
-            onOpenRisk={() => setView("risk")}
+            onOpenRisk={() => selectView("risk")}
             onUpload={pick}
           />
         ) : null}
@@ -484,7 +584,7 @@ export default function Page() {
             busy={busy}
             uploadError={uploadError}
             storeError={storeError}
-            driveReady={authConfigured}
+            driveReady={driveConfigured}
             driveBusy={driveBusy}
             driveStatus={driveStatus}
             driveError={driveError}
@@ -492,6 +592,7 @@ export default function Page() {
             onDrop={onDrop}
             onOpen={openDocument}
             onDelete={removeDocument}
+            onOpenCategory={openCategory}
             onDriveImport={() => void importFromDrive()}
             onDriveConnect={connectDriveNow}
           />
@@ -518,6 +619,8 @@ export default function Page() {
             findings={findings}
             briefing={briefing}
             summary={contract?.summary}
+            category={category}
+            onClearCategory={() => setCategory(null)}
             onOpenClause={openClause}
           />
         ) : null}
@@ -525,6 +628,16 @@ export default function Page() {
         {view === "assistant" ? <Assistant contract={contract} /> : null}
 
         {view === "playbook" ? <Playbook /> : null}
+
+        {view === "notifications" ? (
+          <Notifications
+            alerts={alerts}
+            read={read}
+            email={email}
+            onOpen={openAlert}
+            onMarkAll={markAllRead}
+          />
+        ) : null}
 
         {view === "settings" ? (
           <Settings
