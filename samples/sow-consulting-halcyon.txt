@@ -1,0 +1,94 @@
+STATEMENT OF WORK NUMBER SOW-2026-004
+
+This Statement of Work is issued under the Professional Services Agreement
+dated 18 September 2025 between Halcyon Advisory LLP, the consultant, and
+Meridian Systems Private Limited, the client. The consultant will deliver a
+migration of the client's reporting platform from an on-premise warehouse to a
+managed cloud warehouse over an estimated fourteen weeks.
+
+1. Scope of Services
+The consultant shall carry out discovery and current-state assessment, target
+architecture design, migration of up to two hundred reporting objects,
+validation of migrated outputs against existing reports, and two workshops to
+hand over operational knowledge to the client's data team.
+
+2. Deliverables
+The consultant will provide an assessment report, a target architecture
+document, a migration runbook, a validation summary comparing old and new report
+outputs, and recorded handover sessions. All deliverables are provided in
+electronic form in the consultant's standard templates.
+
+3. Timeline and Dependencies
+The estimated schedule assumes the client provides production-equivalent test
+data within five business days of kick-off and nominates a single decision maker
+for sign-off. Any delay in a client dependency extends the schedule by at least
+the duration of the delay and may attract standby charges.
+
+4. Fees
+The fees for this Statement of Work are eighty-two thousand United States
+dollars, invoiced monthly in arrears in proportion to work performed. Fees are
+exclusive of applicable taxes, which are payable by the client in addition at
+the prevailing rate.
+
+5. Payment Terms
+Invoices are payable within ninety days of the invoice date. Overdue amounts
+attract interest at one and one half percent per month, compounded monthly, and
+the consultant may suspend all work on seven days written notice if any invoice
+remains unpaid for more than thirty days after its due date.
+
+6. Expenses
+The client shall reimburse reasonable travel, accommodation, and subsistence
+expenses at cost plus a ten percent administration charge. Air travel of more
+than four hours may be booked in business class. Expenses do not require prior
+approval where the individual item is below one thousand dollars.
+
+7. Change Control
+Any change to scope, deliverables, or timeline requires a written change order
+signed by both parties. Additional work is charged at the consultant's
+then-current standard rates, which the consultant may revise once per calendar
+year on thirty days notice to the client.
+
+8. Acceptance
+The client shall review each deliverable and provide written acceptance or a
+reasonably detailed statement of deficiencies within five business days of
+receipt. If the client does not respond within that period the deliverable is
+deemed accepted and the associated payment milestone becomes due.
+
+9. Personnel
+The consultant will assign a named engagement lead and up to three
+consultants. The consultant may substitute personnel of equivalent skill and
+experience at its discretion and will inform the client of any change to the
+named engagement lead within five business days.
+
+10. Intellectual Property
+The client owns the deliverables on full payment of all fees due under this
+Statement of Work. The consultant retains ownership of its pre-existing
+methodologies, tools, templates, and know-how, and grants the client a
+non-exclusive licence to use them as embedded in the deliverables.
+
+11. Warranty
+The consultant warrants that the services will be performed with reasonable
+skill and care by suitably qualified personnel. The consultant's sole obligation
+for breach of this warranty is to re-perform the affected services, provided the
+client reports the defect within thirty days of delivery.
+
+12. Termination
+Either party may terminate this Statement of Work for convenience on thirty
+days written notice. On termination the client shall pay for all services
+performed and expenses incurred up to the termination date, together with any
+non-cancellable commitments the consultant has properly entered into.
+
+13. Non-Solicitation
+During the term and for twelve months afterwards, neither party shall solicit
+for employment any personnel of the other who were directly involved in this
+engagement, except through general advertising not targeted at those
+individuals.
+
+14. Order of Precedence
+In the event of conflict, the Professional Services Agreement prevails over
+this Statement of Work except as to scope, fees, and timeline, where this
+Statement of Work prevails. Nothing in this document varies the limitation of
+liability in the Professional Services Agreement.
+
+Signed for Halcyon Advisory LLP: P. Rangan, Partner
+Signed for Meridian Systems Private Limited: A. Fernandes, Director of Data

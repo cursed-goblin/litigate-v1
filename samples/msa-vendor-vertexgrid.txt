@@ -1,0 +1,121 @@
+MASTER SERVICES AGREEMENT
+
+This Master Services Agreement is made on 15 May 2026 between Vertexgrid
+Holdings LLC, a Nevada limited liability company, the customer, and Meridian
+Systems Private Limited, the supplier. The supplier will provide software
+engineering, integration, and managed support services under statements of work
+issued from time to time by the customer.
+
+1. Services and Statements of Work
+The supplier shall perform the services described in each statement of work.
+The customer may issue, amend, or withdraw a statement of work at any time on
+written notice, and the supplier shall implement the change without adjustment to
+fees unless the customer agrees otherwise in writing.
+
+2. Fees and Rate Review
+Fees are as set out in each statement of work and are fixed for the duration of
+this Agreement. The supplier shall not increase its rates for any reason,
+including inflation, currency movement, statutory wage change, or increase in
+its own costs of delivery, for a period of five years.
+
+3. Payment Terms
+The customer shall pay correctly rendered invoices within one hundred and
+twenty days of the end of the month in which the invoice is received. The
+customer may withhold payment of any invoice in whole while any dispute of any
+value remains open, without interest accruing on the withheld amount.
+
+4. Termination for Convenience
+The customer may terminate this Agreement or any statement of work at any time
+for convenience with immediate effect and without payment of any termination
+fee, wind-down cost, or compensation for work in progress. The supplier has no
+right to terminate for convenience at any time.
+
+5. Intellectual Property Assignment
+The supplier assigns to the customer all intellectual property rights in
+everything created in connection with the services, together with all of the
+supplier's pre-existing tools, libraries, frameworks, and know-how used or
+referenced in delivering the services, on a worldwide, perpetual, and
+irrevocable basis.
+
+6. Indemnity
+The supplier shall indemnify, defend, and hold harmless the customer, its
+affiliates, and their officers, directors, employees, and end customers against
+any and all claims, losses, liabilities, damages, penalties, and expenses
+including legal fees on a full indemnity basis, however arising and regardless of
+fault or negligence of the customer.
+
+7. Limitation of Liability
+The customer's aggregate liability under this Agreement is limited to five
+thousand dollars. The supplier's liability is unlimited in all respects, and no
+exclusion of indirect, consequential, or punitive damages applies to the
+supplier. The supplier waives any right to claim contribution from the customer.
+
+8. Insurance
+The supplier shall maintain professional indemnity insurance of not less than
+ten million dollars per claim and in the aggregate, commercial general liability
+of five million dollars, and cyber liability of ten million dollars, and shall
+name the customer as an additional insured on each policy.
+
+9. Service Levels and Credits
+The supplier shall maintain a monthly resolution rate of ninety-nine percent for
+critical incidents. Failure in any month attracts a credit of fifteen percent of
+the monthly fee per failure, cumulative and without cap, and three failures in
+any rolling six months constitute material breach.
+
+10. Audit and Access
+The customer or its nominated auditor may audit the supplier's books, systems,
+facilities, personnel records, and subcontractor arrangements at any time on
+two business days notice, at the supplier's cost, including reimbursement of the
+auditor's professional fees and travel expenses.
+
+11. Exclusivity and Non-Compete
+During the term and for three years afterwards, the supplier shall not provide
+services of any kind to any business that competes with the customer in any
+territory, and shall not accept any engagement that the customer notifies in
+writing as being with a competitor or a prospective competitor.
+
+12. Personnel and Key Persons
+The supplier shall not remove or reassign any named key person without the
+customer's prior written consent, which may be withheld at the customer's sole
+discretion. The customer may require replacement of any supplier personnel at
+any time without reason and at the supplier's cost.
+
+13. Confidentiality
+The supplier shall keep all information relating to the customer confidential in
+perpetuity, with no exception for information that becomes public, that the
+supplier independently develops, or that the supplier already held before
+disclosure. Disclosure compelled by law requires the customer's prior written
+consent.
+
+14. Data Protection
+The supplier shall comply with all applicable data protection laws, shall
+process personal data only as instructed, and shall be solely responsible for
+any regulatory fine, penalty, or claim relating to personal data processed under
+this Agreement, irrespective of whether the customer's instructions caused it.
+
+15. Publicity
+The supplier shall not refer to the customer, use the customer's name or logo,
+or describe the services in any marketing material, case study, credential list,
+or investor document at any time, including after termination, without the
+customer's prior written consent.
+
+16. Assignment and Change of Control
+The customer may assign or novate this Agreement to any person without consent.
+The supplier may not assign, subcontract, or novate any part of it, and a change
+in control of the supplier entitles the customer to terminate immediately and
+reclaim all fees paid in the preceding twelve months.
+
+17. Unilateral Amendment
+The customer may amend the terms of this Agreement, including the schedules and
+policies referenced in it, by publishing a revised version to the supplier
+portal. The revised version takes effect fifteen days after publication and
+applies to all statements of work then in progress.
+
+18. Governing Law and Venue
+This Agreement is governed by the laws of the State of Nevada. Any dispute shall
+be brought exclusively in the state or federal courts located in Clark County,
+Nevada, and the supplier irrevocably waives any right to a jury trial and any
+objection to that forum.
+
+Signed for Vertexgrid Holdings LLC: T. Brannick, Chief Operating Officer
+Signed for Meridian Systems Private Limited: S. Menon, Head of Legal

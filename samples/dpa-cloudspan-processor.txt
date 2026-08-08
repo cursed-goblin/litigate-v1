@@ -1,0 +1,86 @@
+DATA PROCESSING ADDENDUM
+
+This Data Processing Addendum forms part of the Cloud Services Agreement dated
+4 January 2026 between Meridian Systems Private Limited, the controller, and
+Cloudspan Infrastructure Inc, a Delaware corporation, the processor. This
+Addendum governs the processing of personal data by the processor on behalf of
+the controller in the course of providing hosting and analytics services.
+
+1. Scope and Roles
+The controller determines the purposes and means of processing personal data and
+the processor acts only on the controller's documented instructions. The
+processor shall notify the controller without undue delay if it believes an
+instruction infringes applicable data protection law, and may suspend the
+relevant processing until the instruction is confirmed or amended.
+
+2. Nature of Processing
+The processor will process customer account records, contact details, usage
+telemetry, support correspondence, and billing information for the purpose of
+delivering, securing, monitoring, and improving the services described in the
+Cloud Services Agreement, and for no other purpose whatsoever.
+
+3. Subprocessors
+The controller gives general authorisation for the processor to engage
+subprocessors. The processor will publish a list of subprocessors and will give
+ten days notice by email before adding a new one. If the controller objects, its
+only remedy is to terminate the affected service on thirty days notice without
+refund of prepaid fees.
+
+4. International Transfers
+Personal data may be transferred to and processed in the United States,
+Ireland, and Singapore. Where such transfer is from a jurisdiction requiring a
+transfer mechanism, the parties agree that the applicable standard contractual
+clauses are incorporated into this Addendum by reference and take precedence in
+the event of conflict.
+
+5. Security Measures
+The processor shall implement appropriate technical and organisational measures
+including encryption of personal data in transit and at rest, role-based access
+control, logging of administrative access, annual penetration testing, and
+background checks on personnel with access to production systems.
+
+6. Personnel and Confidentiality
+The processor shall ensure that persons authorised to process personal data are
+subject to binding confidentiality obligations that survive the end of their
+engagement, and shall limit access to those personnel who require it to perform
+the services. Access rights shall be reviewed at least once every quarter.
+
+7. Breach Notification
+The processor shall notify the controller of a personal data breach affecting
+the controller's data within seventy-two hours of becoming aware of it, and
+shall provide the information reasonably required for the controller to meet its
+own regulatory notification duties, including the categories and approximate
+number of records affected.
+
+8. Assistance and Data Subject Requests
+The processor shall provide reasonable assistance with data subject access,
+correction, deletion, and portability requests. The processor may charge its
+then-current professional services rates for assistance exceeding four hours in
+any calendar month, and shall provide an estimate before incurring such charges.
+
+9. Audit Rights
+The controller may audit the processor's compliance with this Addendum once per
+calendar year on thirty days written notice, during business hours, at the
+controller's cost. The processor may satisfy an audit request by supplying its
+most recent third-party security report instead of permitting on-site access.
+
+10. Deletion and Return
+On termination of the Cloud Services Agreement the processor shall delete all
+personal data within ninety days, except copies held in encrypted backups which
+are deleted on their ordinary rolling schedule of up to twelve months, and
+except where retention is required by applicable law.
+
+11. Liability
+Each party's liability under this Addendum is subject to the limitations and
+exclusions of liability set out in the Cloud Services Agreement, and the parties
+agree that any claim under this Addendum counts against the same aggregate cap
+rather than creating a separate one.
+
+12. Order of Precedence
+In the event of conflict between this Addendum and the Cloud Services
+Agreement, this Addendum prevails in respect of the processing of personal data.
+All other terms of the Cloud Services Agreement remain in full force and effect
+and are not varied by this Addendum.
+
+Signed for Meridian Systems Private Limited: S. Menon, Head of Legal
+Signed for Cloudspan Infrastructure Inc: D. Alvarez, General Counsel

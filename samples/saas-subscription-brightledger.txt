@@ -1,0 +1,103 @@
+BRIGHTLEDGER SUBSCRIPTION AGREEMENT
+
+This Subscription Agreement is made on 22 February 2026 between Brightledger
+Software Inc, a Delaware corporation, the provider, and Meridian Systems Private
+Limited, the customer. The provider supplies a hosted financial close and
+reconciliation platform on a subscription basis for two hundred fifty named
+users.
+
+1. Subscription and Access
+The provider grants the customer a non-exclusive, non-transferable right to
+access the platform during the subscription term for its internal business
+purposes. The customer shall not permit access by any third party, shall not
+resell access, and remains responsible for all activity under its accounts.
+
+2. Subscription Term and Renewal
+The initial term is twenty-four months from the activation date. The
+subscription renews automatically for successive twelve-month periods unless
+either party gives written notice of non-renewal at least sixty days before the
+end of the then-current term. Notice given late takes effect at the following
+renewal.
+
+3. Fees and Price Increases
+The annual subscription fee is one hundred forty-four thousand dollars, invoiced
+annually in advance. On each renewal the provider may increase the fee by up to
+seven percent above the prior year's fee without the customer's consent, and by
+more than seven percent only with the customer's written agreement.
+
+4. Payment
+Invoices are payable within forty-five days. The provider may suspend access if
+any undisputed invoice remains unpaid for more than fifteen days after written
+reminder. Fees are non-refundable and no credit is given for unused capacity,
+inactive users, or periods of voluntary non-use.
+
+5. Service Availability
+The provider will use commercially reasonable efforts to make the platform
+available ninety-nine and one half percent of the time each month, excluding
+scheduled maintenance and events outside its reasonable control. The provider
+does not offer service credits, and availability shortfalls are not treated as a
+breach of this Agreement.
+
+6. Support
+The provider will respond to critical incidents within four business hours and
+to all other requests within two business days, during nine to six Eastern time
+on business days. Support is provided in English only and does not include
+configuration work, data cleansing, or custom report building.
+
+7. Customer Data
+The customer retains all right, title, and interest in data it uploads. The
+provider may use aggregated and de-identified usage data to operate, secure, and
+improve its products, and to produce industry benchmarks, provided that no
+output identifies the customer or any individual.
+
+8. Data Location and Security
+Customer data is stored in the provider's United States and Ireland regions. The
+provider maintains an information security programme aligned to recognised
+industry standards, encrypts data in transit and at rest, and will make its most
+recent third-party audit report available on request once per year.
+
+9. Confidentiality
+Each party shall keep the other's confidential information secret, use it only
+to perform this Agreement, and protect it with reasonable care. These
+obligations continue for five years after termination, and indefinitely in
+respect of source code and security documentation.
+
+10. Warranty and Disclaimer
+The provider warrants that the platform will perform materially in accordance
+with its published documentation. Except as expressly stated, the platform is
+provided as is and the provider disclaims all other warranties, including any
+implied warranty of merchantability or fitness for a particular purpose.
+
+11. Indemnity
+The provider will defend the customer against third-party claims that the
+platform infringes a patent or copyright, provided the customer notifies it
+promptly and allows it to control the defence. The customer will defend the
+provider against claims arising from the customer's data or its use of the
+platform in breach of this Agreement.
+
+12. Limitation of Liability
+Neither party is liable for indirect, incidental, special, or consequential
+loss, or for lost profits, revenue, or data. Each party's total liability is
+capped at the fees paid by the customer in the twelve months before the event
+giving rise to the claim.
+
+13. Suspension and Termination
+Either party may terminate for material breach that remains uncured thirty days
+after written notice. The provider may suspend access immediately where it
+reasonably believes continued access presents a security risk to the platform or
+to other customers, and will restore access once the risk is resolved.
+
+14. Data Export on Exit
+For thirty days after termination the customer may export its data in the
+provider's standard comma-separated format. After that period the provider will
+delete customer data within sixty days. Migration assistance beyond standard
+export is chargeable at the provider's professional services rates.
+
+15. Governing Law
+This Agreement is governed by the laws of the State of New York and the parties
+submit to the exclusive jurisdiction of the state and federal courts located in
+New York County. Each party waives any objection to that venue on grounds of
+inconvenience.
+
+Signed for Brightledger Software Inc: M. Okafor, Vice President of Revenue
+Signed for Meridian Systems Private Limited: S. Menon, Head of Legal

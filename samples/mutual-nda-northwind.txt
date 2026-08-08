@@ -1,0 +1,87 @@
+MUTUAL NON-DISCLOSURE AGREEMENT
+
+This Mutual Non-Disclosure Agreement is entered into on 12 March 2026 between
+Northwind Analytics Limited, a company registered in Bengaluru, India, and
+Meridian Systems Private Limited, a company registered in Chennai, India. Each
+party may disclose confidential information to the other in connection with
+evaluating a possible commercial relationship in data infrastructure services.
+
+1. Definition of Confidential Information
+Confidential Information means any non-public information disclosed by one party
+to the other, whether in writing, orally, or by inspection of tangible objects,
+that is designated as confidential at the time of disclosure or that a
+reasonable person would understand to be confidential given the nature of the
+information and the circumstances of disclosure.
+
+2. Exclusions
+Confidential Information does not include information that is or becomes
+publicly available through no fault of the receiving party, was rightfully in
+the receiving party's possession before disclosure, is independently developed
+by the receiving party without reference to the disclosing party's information,
+or is rightfully received from a third party without a duty of confidence.
+
+3. Obligations of the Receiving Party
+The receiving party shall use the Confidential Information solely to evaluate
+the potential relationship described above, shall protect it using at least the
+same degree of care it applies to its own confidential information of similar
+importance, and shall not disclose it to any third party without the prior
+written consent of the disclosing party.
+
+4. Permitted Disclosures
+The receiving party may disclose Confidential Information to its employees,
+officers, and professional advisers who have a genuine need to know it for the
+permitted purpose, provided that each such recipient is bound by written or
+professional obligations of confidentiality that are no less protective than
+those set out in this Agreement.
+
+5. Compelled Disclosure
+If the receiving party is required by law, regulation, or court order to
+disclose any Confidential Information, it shall, where legally permitted, give
+the disclosing party prompt written notice so that the disclosing party may seek
+a protective order, and shall disclose only the minimum portion of the
+information that is legally required.
+
+6. Term and Survival
+This Agreement takes effect on the date above and continues for two years.
+The confidentiality obligations in clauses 3 and 4 survive for three years from
+the date of each disclosure, after which the receiving party's obligations with
+respect to that disclosure expire automatically without further notice.
+
+7. Return or Destruction of Materials
+On written request by the disclosing party, the receiving party shall promptly
+return or destroy all materials containing Confidential Information and confirm
+in writing that it has done so, except that one archival copy may be retained
+solely to evidence compliance with legal or record-keeping obligations.
+
+8. No Licence and No Warranty
+Nothing in this Agreement grants either party any licence, right, title, or
+interest in the other party's intellectual property. All Confidential
+Information is provided as is, and neither party makes any representation or
+warranty as to its accuracy, completeness, or fitness for any purpose.
+
+9. No Obligation to Proceed
+Neither party is under any obligation to enter into any further agreement, to
+purchase or supply any goods or services, or to continue discussions. Each party
+may terminate discussions at any time for any reason, and neither party is
+liable to the other for costs incurred during the evaluation.
+
+10. Remedies
+The parties agree that unauthorised disclosure of Confidential Information may
+cause harm for which money alone is an inadequate answer, and that the affected
+party may seek injunctive relief in addition to any other rights available to it
+at law, without needing to post a bond or other security.
+
+11. Governing Law and Jurisdiction
+This Agreement is governed by the laws of India, and the courts at Chennai have
+exclusive jurisdiction over any dispute arising out of or in connection with it.
+The parties will attempt in good faith to resolve any dispute through discussion
+between senior representatives before commencing proceedings.
+
+12. Entire Agreement
+This Agreement is the entire understanding between the parties concerning the
+exchange of Confidential Information and supersedes all prior discussions on
+that subject. It may be amended only by a written document signed by an
+authorised representative of each party.
+
+Signed for Northwind Analytics Limited: R. Iyer, Director
+Signed for Meridian Systems Private Limited: S. Menon, Head of Legal
