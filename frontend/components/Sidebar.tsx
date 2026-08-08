@@ -21,6 +21,7 @@ export type View =
   | "risk"
   | "assistant"
   | "playbook"
+  | "settings"
 
 type Item = {
   id: View
@@ -43,20 +44,22 @@ const GOVERNANCE: Item[] = [
   { id: "playbook", label: "Playbook", icon: BookIcon },
 ]
 
+// Settings owns the account controls, including sign out, so the footer keeps
+// one route into them rather than two.
+const SYSTEM: Item[] = [{ id: "settings", label: "Settings", icon: GearIcon }]
+
 export default function Sidebar({
   view,
   onSelect,
   online,
   alerts,
   email,
-  onSignOut,
 }: {
   view: View
   onSelect: (next: View) => void
   online: boolean
   alerts: number
   email: string
-  onSignOut?: () => void
 }) {
   const renderItem = (item: Item) => {
     const Icon = item.icon
@@ -119,11 +122,29 @@ export default function Sidebar({
       <div className="border-t border-line px-3 py-3">
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] text-ink-2 transition-colors hover:bg-canvas"
+          onClick={() => onSelect("assistant")}
+          aria-label="Ask Litigate AI"
+          className={
+            "flex w-full items-center gap-2.5 rounded-full border bg-canvas p-1 pr-4 text-left transition-colors " +
+            (view === "assistant"
+              ? "border-accent"
+              : "border-line hover:border-accent")
+          }
         >
-          <GearIcon className="h-[18px] w-[18px]" />
-          Settings
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-onaccent shadow-card">
+            <ChatIcon className="h-[18px] w-[18px]" />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-[12.5px] font-medium text-ink">
+              Ask Litigate AI
+            </span>
+            <span className="block text-[11px] text-ink-4">
+              Answers from your contract
+            </span>
+          </span>
         </button>
+
+        <div className="mt-2 space-y-1">{SYSTEM.map(renderItem)}</div>
 
         <div className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-ink-2">
           <BellIcon className="h-[18px] w-[18px]" />
@@ -137,7 +158,11 @@ export default function Sidebar({
 
         <ThemeToggle />
 
-        <div className="mt-2 flex items-center gap-2 rounded-lg bg-canvas px-3 py-2">
+        <button
+          type="button"
+          onClick={() => onSelect("settings")}
+          className="mt-2 flex w-full items-center gap-2 rounded-lg bg-canvas px-3 py-2 text-left transition-colors hover:bg-surface"
+        >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-onaccent">
             {initial}
           </span>
@@ -156,17 +181,7 @@ export default function Sidebar({
               (online ? "bg-accent" : "bg-risk-high")
             }
           />
-        </div>
-
-        {onSignOut ? (
-          <button
-            type="button"
-            onClick={onSignOut}
-            className="mt-2 w-full rounded-lg px-3 py-2 text-left text-[12.5px] text-ink-3 transition-colors hover:bg-canvas hover:text-ink-2"
-          >
-            Sign out
-          </button>
-        ) : null}
+        </button>
       </div>
     </aside>
   )

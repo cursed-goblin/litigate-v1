@@ -11,6 +11,7 @@ import Documents from "@/components/Documents"
 import Login from "@/components/Login"
 import Playbook from "@/components/Playbook"
 import RiskRegister from "@/components/RiskRegister"
+import Settings from "@/components/Settings"
 import Sidebar from "@/components/Sidebar"
 import type { View } from "@/components/Sidebar"
 import { explainFindings, getHealth, uploadContract } from "@/lib/api"
@@ -300,6 +301,15 @@ export default function Page() {
     setDriveError(null)
     setDriveStatus(null)
 
+    // The button stays visible even when the browser key is missing, because a
+    // silently absent control is far harder to diagnose than a clear message.
+    if (!driveConfigured) {
+      setDriveError(
+        "Google Drive is not switched on for this deployment. Add NEXT_PUBLIC_GOOGLE_API_KEY in Cloudflare Pages, redeploy, then try again.",
+      )
+      return
+    }
+
     const token = await driveToken()
     if (!token) {
       setDriveError(
@@ -400,7 +410,6 @@ export default function Page() {
         online={health?.status === "ok"}
         alerts={contract?.summary?.high ?? 0}
         email={email}
-        onSignOut={authConfigured ? signOut : undefined}
       />
 
       <main className="min-w-0 flex-1 overflow-hidden">
@@ -425,7 +434,7 @@ export default function Page() {
             busy={busy}
             uploadError={uploadError}
             storeError={storeError}
-            driveReady={driveConfigured && authConfigured}
+            driveReady={authConfigured}
             driveBusy={driveBusy}
             driveStatus={driveStatus}
             driveError={driveError}
@@ -466,6 +475,16 @@ export default function Page() {
         {view === "assistant" ? <Assistant contract={contract} /> : null}
 
         {view === "playbook" ? <Playbook /> : null}
+
+        {view === "settings" ? (
+          <Settings
+            email={email}
+            health={health}
+            driveConfigured={driveConfigured}
+            onDriveConnect={connectDriveNow}
+            onSignOut={authConfigured ? signOut : undefined}
+          />
+        ) : null}
       </main>
     </div>
   )

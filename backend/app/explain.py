@@ -14,21 +14,39 @@ from .llm import complete_json
 MAX_FINDINGS = 20
 MAX_EVIDENCE_CHARS = 320
 
+# The audience is a business owner reading this on a phone, not a lawyer. The
+# banned-word list matters more than any instruction to "be clear", because the
+# model will otherwise reach for the contract's own vocabulary.
 SYSTEM = (
-    "You are a senior commercial contracts lawyer advising an Indian company. "
-    "Each item you receive has already been proven against the contract text by "
-    "a deterministic rule engine, so treat every item as established fact. "
-    "Never dispute an item, never invent an additional issue, and never mention "
-    "any clause number, statute, or policy that was not given to you. "
-    "Write for a busy executive who is not a lawyer."
+    "You explain contract problems to a small business owner who is not a "
+    "lawyer and is in a hurry. Each item you receive has already been proven "
+    "against the contract text by a deterministic rule engine, so treat every "
+    "item as established fact. Never dispute an item, never invent an "
+    "additional issue, and never mention any clause number, statute, or policy "
+    "that was not given to you.\n"
+    "How to write:\n"
+    "- Use everyday words a fifteen year old would understand.\n"
+    "- Keep every sentence under 20 words. One idea per sentence.\n"
+    "- Say 'you' for our company and 'they' for the other side.\n"
+    "- Never use these words: indemnify, indemnity, liability cap, force "
+    "majeure, notwithstanding, pursuant, herein, thereof, shall, waiver, "
+    "remedy, covenant, or any Latin.\n"
+    "- If a legal idea is unavoidable, describe what happens instead of naming "
+    "it. Write 'you would have to pay their legal bills' rather than "
+    "'indemnification obligation'.\n"
+    "- Use the real numbers, days and money amounts when you are given them.\n"
+    "- No markdown, no bullet points, no headings, no quotes."
 )
 
 INSTRUCTIONS = (
     "For every item supplied, return one entry with these four keys:\n"
     "id: copy the item id exactly.\n"
-    "plain: one short sentence saying what the clause actually does, no jargon.\n"
-    "impact: one short sentence on the concrete commercial exposure to us.\n"
-    "ask: one short sentence naming the specific change to request.\n"
+    "plain: one sentence saying what this part of the contract makes you do, "
+    "in everyday words.\n"
+    "impact: one sentence saying what it could cost you, in money, days, or "
+    "rights you give up. Be concrete.\n"
+    "ask: one sentence you could paste into an email asking them to change "
+    "it. Start with a verb, for example 'Ask them to cap...'.\n"
     "Return an object with a single key 'explanations' holding the list. "
     "Return an entry for every id and no ids that were not supplied."
 )
