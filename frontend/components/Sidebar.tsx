@@ -6,6 +6,7 @@ import {
   BookIcon,
   ChatIcon,
   ChevronIcon,
+  FileIcon,
   FolderIcon,
   GearIcon,
   GridIcon,
@@ -21,6 +22,7 @@ export type View =
   | "risk"
   | "assistant"
   | "playbook"
+  | "docs"
   | "notifications"
   | "settings"
 
@@ -41,8 +43,11 @@ const ANALYSIS: Item[] = [
   { id: "assistant", label: "Assistant", icon: ChatIcon },
 ]
 
+// Both of these answer why a finding was raised, rather than showing findings,
+// which is why the documentation sits beside the playbook and not in Settings.
 const GOVERNANCE: Item[] = [
   { id: "playbook", label: "Playbook", icon: BookIcon },
+  { id: "docs", label: "Documentation", icon: FileIcon },
 ]
 
 const NOTIFICATIONS: Item = {

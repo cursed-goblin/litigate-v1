@@ -8,6 +8,7 @@ import Analysis from "@/components/Analysis"
 import Assistant from "@/components/Assistant"
 import ChatLauncher from "@/components/ChatLauncher"
 import Dashboard from "@/components/Dashboard"
+import Docs from "@/components/Docs"
 import Documents from "@/components/Documents"
 import Login from "@/components/Login"
 import Notifications from "@/components/Notifications"
@@ -628,6 +629,8 @@ export default function Page() {
         {view === "assistant" ? <Assistant contract={contract} /> : null}
 
         {view === "playbook" ? <Playbook /> : null}
+
+        {view === "docs" ? <Docs health={health} /> : null}
 
         {view === "notifications" ? (
           <Notifications
