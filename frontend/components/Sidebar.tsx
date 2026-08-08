@@ -120,31 +120,7 @@ export default function Sidebar({
       </nav>
 
       <div className="border-t border-line px-3 py-3">
-        <button
-          type="button"
-          onClick={() => onSelect("assistant")}
-          aria-label="Ask Litigate AI"
-          className={
-            "flex w-full items-center gap-2.5 rounded-full border bg-canvas p-1 pr-4 text-left transition-colors " +
-            (view === "assistant"
-              ? "border-accent"
-              : "border-line hover:border-accent")
-          }
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-onaccent shadow-card">
-            <ChatIcon className="h-[18px] w-[18px]" />
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate text-[12.5px] font-medium text-ink">
-              Ask Litigate AI
-            </span>
-            <span className="block text-[11px] text-ink-4">
-              Answers from your contract
-            </span>
-          </span>
-        </button>
-
-        <div className="mt-2 space-y-1">{SYSTEM.map(renderItem)}</div>
+        <div className="space-y-1">{SYSTEM.map(renderItem)}</div>
 
         <div className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-ink-2">
           <BellIcon className="h-[18px] w-[18px]" />
